@@ -1,0 +1,10 @@
+Zotero AutoCite 0.4 BETA
+- OpenAlex al posto di Crossref per ricerca primaria.
+- Validazione preventiva Crossref di DOI, titoli, anni, primo autore.
+- Selezione manuale e conferma prima di salvare una fonte nel registro.
+- Importazione di opere senza DOI quando identificate da ID OpenAlex esplicito.
+- Protezione anti-duplicato (DOI o titolo+anno), blocco prudenziale sulle corrispondenze ambigue.
+- Migrazione e backup da catalogo 0.3, alias preservati.
+- CSV arricchito con OpenAlex ID e stato della verifica.
+- Nessuna modifica al formato di citazione Word collaudato nella 0.1.2.
+- Test simulati delle API e della scrittura Zotero; test reale ancora necessario.

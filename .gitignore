@@ -1,0 +1,29 @@
+# Python caches and environments
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+.env
+.env.*
+
+# Local user catalog, secrets and settings
+catalogo*.sqlite3
+catalogo*.sqlite3-*
+*.sqlite3-wal
+*.sqlite3-shm
+settings.json
+*.token
+*.key
+
+# Generated manuscript copies and logs
+*_Zoterizzato*.docx
+*_Zoterizzato*.pdf
+*_LOG.csv
+*_riepilogo.json
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

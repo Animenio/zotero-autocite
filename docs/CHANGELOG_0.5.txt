@@ -1,0 +1,12 @@
+AutoCite Desktop 0.5 (BETA)
+- Nuova GUI tkinter, avviabile con doppio clic su AutoCite_Desktop.pyw (no BAT per l'uso ordinario).
+- Ricerca DOI-first su OpenAlex con verifica Crossref o fallback esatto quando OpenAlex risponde 404.
+- Ricerca testuale, anteprima, verifica esplicita prima di registrare, copia codice.
+- Catalogo SQLite locale ricercabile e esportabile in CSV; alias persistenti.
+- Raccolta Zotero selezionabile da menu grafico con verifica della chiave del server.
+- Conversione Word da finestra grafica, backup implicito dell'originale: nuovi file _Zoterizzato_2 ecc.
+- Autorizzazione esplicita delle importazioni e raccolta selezionata obbligatoria.
+- Macro Word VBA opzionale con pulsante di accesso rapido e conferma sull'importazione.
+- Motore 0.4.2 invariato: zotero_autocite.py, autocite_catalog.py, autocite_openalex.py.
+- 42 test automatici e smoke test GUI in display virtuale superati.
+- Da confermare su Windows reale: nuove interazioni GUI e macro.

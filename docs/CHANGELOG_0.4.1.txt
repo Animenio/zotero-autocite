@@ -1,0 +1,7 @@
+Zotero AutoCite 0.4.1 BETA
+- Cerca_Articolo.bat accetta DOI esatti e URL doi.org, oltre a titoli/autori.
+- DOI: lookup OpenAlex per identificativo senza lista di risultati; verifica DOI, titolo, anno e autore con Crossref.
+- Se OpenAlex restituisce 404: fallback rigoroso su DOI Crossref, senza assegnare identificativi OpenAlex inventati.
+- Il codice esistente e gli eventuali collegamenti Zotero vengono preservati.
+- Registrazione dopo conferma esplicita. Scrittura Zotero soltanto nella successiva conversione Word con raccolta impostata.
+- 0.4 resta disponibile; nessuna modifica ai campi Word 0.1.2 già collaudati.

@@ -1,0 +1,50 @@
+test_conversion_run_splitting_and_unresolved (test_autocite.AutoCiteTests.test_conversion_run_splitting_and_unresolved) ... ok
+test_doi_norm (test_autocite.AutoCiteTests.test_doi_norm) ... ok
+test_incoherent_unchanged (test_autocite.AutoCiteTests.test_incoherent_unchanged) ... ok
+test_table_after_many_paragraphs (test_autocite.AutoCiteTests.test_table_after_many_paragraphs) ... ok
+test_word_spacing_is_preserved_and_missing_separator_added (test_autocite.AutoCiteTests.test_word_spacing_is_preserved_and_missing_separator_added)
+Regression: Word trims w:t trailing spaces unless xml:space=preserve. ... ok
+test_alias_imports_missing_item_after_collection_choice (test_catalog.CatalogTests.test_alias_imports_missing_item_after_collection_choice) ... ok
+test_alias_is_persistent_and_not_duplicated (test_catalog.CatalogTests.test_alias_is_persistent_and_not_duplicated) ... ok
+test_alias_to_live_docx_with_existing_zotero_item (test_catalog.CatalogTests.test_alias_to_live_docx_with_existing_zotero_item) ... ok
+test_catalog_sync_from_zotero_without_doi (test_catalog.CatalogTests.test_catalog_sync_from_zotero_without_doi) ... ok
+test_clean_test_document_only_contains_real_06937_alias (test_catalog.CatalogTests.test_clean_test_document_only_contains_real_06937_alias) ... ok
+test_failed_import_attempted_once_per_alias_per_document (test_catalog.CatalogTests.test_failed_import_attempted_once_per_alias_per_document) ... ok
+test_new_item_import_does_not_call_unavailable_local_template_endpoint (test_catalog.CatalogTests.test_new_item_import_does_not_call_unavailable_local_template_endpoint)
+Regression from live 0.4.1: local GET /items/new returned HTTP 404. ... ok
+test_not_selected_does_not_write (test_catalog.CatalogTests.test_not_selected_does_not_write) ... ok
+test_zotero_post_item_payload (test_catalog.CatalogTests.test_zotero_post_item_payload) ... ok
+test_collection_key_must_be_one_of_verified_choices (test_desktop_core.DesktopCoreTests.test_collection_key_must_be_one_of_verified_choices) ... ok
+test_doi_fallback_requires_exact_crossref_doi (test_desktop_core.DesktopCoreTests.test_doi_fallback_requires_exact_crossref_doi) ... ok
+test_doi_first_uses_exact_and_returns_single_result (test_desktop_core.DesktopCoreTests.test_doi_first_uses_exact_and_returns_single_result) ... ok
+test_input_path_does_not_overwrite_original_or_prior_copy (test_desktop_core.DesktopCoreTests.test_input_path_does_not_overwrite_original_or_prior_copy) ... ok
+test_invalid_doi_url_is_not_treated_as_title (test_desktop_core.DesktopCoreTests.test_invalid_doi_url_is_not_treated_as_title) ... ok
+test_manual_confirmation_required_to_save (test_desktop_core.DesktopCoreTests.test_manual_confirmation_required_to_save) ... ok
+test_title_search_then_explicit_selection (test_desktop_core.DesktopCoreTests.test_title_search_then_explicit_selection) ... ok
+test_wrong_openalex_doi_rejected (test_desktop_core.DesktopCoreTests.test_wrong_openalex_doi_rejected) ... ok
+test_cancel_does_not_write (test_doi_lookup.DoiFirstTests.test_cancel_does_not_write) ... ok
+test_crossref_fallback_on_openalex_404_and_stable_alias (test_doi_lookup.DoiFirstTests.test_crossref_fallback_on_openalex_404_and_stable_alias) ... ok
+test_crossref_wrong_doi_aborts (test_doi_lookup.DoiFirstTests.test_crossref_wrong_doi_aborts) ... ok
+test_detection (test_doi_lookup.DoiFirstTests.test_detection) ... ok
+test_exact_doi_register_preserve_alias (test_doi_lookup.DoiFirstTests.test_exact_doi_register_preserve_alias) ... ok
+test_network_or_rate_error_does_not_fall_back (test_doi_lookup.DoiFirstTests.test_network_or_rate_error_does_not_fall_back) ... ok
+test_wrong_openalex_doi_aborts (test_doi_lookup.DoiFirstTests.test_wrong_openalex_doi_aborts) ... ok
+test_author_conflict_aborts (test_openalex.OAIntegrationTests.test_author_conflict_aborts) ... ok
+test_crossref_title_conflict_aborts_before_registration (test_openalex.OAIntegrationTests.test_crossref_title_conflict_aborts_before_registration) ... ok
+test_doi_conflict_aborts (test_openalex.OAIntegrationTests.test_doi_conflict_aborts) ... ok
+test_doi_less_item_import_keeps_existing_alias (test_openalex.OAIntegrationTests.test_doi_less_item_import_keeps_existing_alias) ... ok
+test_doi_less_record_stable_alias (test_openalex.OAIntegrationTests.test_doi_less_record_stable_alias) ... ok
+test_id_normalization_and_bad_values (test_openalex.OAIntegrationTests.test_id_normalization_and_bad_values) ... ok
+test_interactive_cancel_leaves_registry_unchanged (test_openalex.OAIntegrationTests.test_interactive_cancel_leaves_registry_unchanged) ... ok
+test_possible_duplicate_blocks_local_write (test_openalex.OAIntegrationTests.test_possible_duplicate_blocks_local_write) ... ok
+test_register_persistent_alias_and_0_3_schema_migration (test_openalex.OAIntegrationTests.test_register_persistent_alias_and_0_3_schema_migration) ... ok
+test_two_author_preview_is_not_truncated (test_openalex.OAIntegrationTests.test_two_author_preview_is_not_truncated) ... ok
+test_verify_metadata (test_openalex.OAIntegrationTests.test_verify_metadata) ... ok
+test_year_conflict_aborts (test_openalex.OAIntegrationTests.test_year_conflict_aborts) ... ok
+test_zotero_writer_accepts_checked_doi_less_template (test_openalex.OAIntegrationTests.test_zotero_writer_accepts_checked_doi_less_template) ... ok
+
+----------------------------------------------------------------------
+Ran 42 tests in 0.493s
+
+OK
+DOI non indicizzato su OpenAlex: provo il recupero esatto da Crossref.

@@ -1,0 +1,10 @@
+Zotero AutoCite 0.4.2 BETA — fix importazione locale
+
+Origine: test utente 2026-11-10 su codice [[Z:06937]], HTTP 404 /items/new.
+1. Eliminato GET /items/new nel writer locale; POST /users/0/items crea item con payload parziale.
+2. Limitati i campi inviati per tipo Zotero.
+3. Evitati tentativi di importazione ripetuti per lo stesso alias fallito in un documento.
+4. Nuovo Word pulito (2x [[Z:06937]], 1x [[ZBIB]]) senza esempio [[Z:00421]].
+5. Preservati catalogo persistente e configurazione collection in APPDATA.
+
+Test interni: offline/simulati. Da verificare import Zotero reale con autorizzazione.

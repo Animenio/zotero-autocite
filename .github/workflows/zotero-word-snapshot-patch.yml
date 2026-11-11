@@ -1,0 +1,37 @@
+name: Zotero Word native snapshot patch compatibility
+
+on:
+  push:
+    branches: [feature/upstream-word-placeholder-conversion]
+    paths:
+      - 'upstream-prep/patches/zotero-word-for-windows-integration/**'
+      - '.github/workflows/zotero-word-snapshot-patch.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  apply-to-official-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout AutoCite preparation branch
+        uses: actions/checkout@v4
+      - name: Clone official Zotero Word for Windows source
+        run: git clone --depth 1 https://github.com/zotero/zotero-word-for-windows-integration.git original
+      - name: Confirm patch applies cleanly
+        working-directory: original
+        run: |
+          git apply --check --ignore-space-at-eol "$GITHUB_WORKSPACE/upstream-prep/patches/zotero-word-for-windows-integration/0001-main-story-readonly-snapshot.patch"
+          git apply --ignore-space-at-eol "$GITHUB_WORKSPACE/upstream-prep/patches/zotero-word-for-windows-integration/0001-main-story-readonly-snapshot.patch"
+          git diff --check
+      - name: Confirm all three native interfaces have been updated
+        working-directory: original
+        run: |
+          grep -q 'statusCode __stdcall getMainStorySnapshot' build/zoteroWinWordIntegration/document.cpp
+          grep -q 'getMainStorySnapshot(' build/zoteroWinWordIntegration/zoteroWinWordIntegration.h
+          grep -q 'getMainStorySnapshot: lib.declare' components/zoteroWinWordIntegration.mjs
+          grep -q 'getMainStorySnapshot: function' components/zoteroWinWordIntegration.mjs
+
+# This workflow checks patch application, not C++ compilation or Word COM behavior.
+# Compiling the full Word integration requires the official Visual Studio/MS Office environment.

@@ -2,7 +2,17 @@ name: Python tests
 
 on:
   push:
+    paths:
+      - '*.py'
+      - 'tests/**'
+      - 'requirements.txt'
+      - '.github/workflows/tests.yml'
   pull_request:
+    paths:
+      - '*.py'
+      - 'tests/**'
+      - 'requirements.txt'
+      - '.github/workflows/tests.yml'
 
 jobs:
   unit-tests:

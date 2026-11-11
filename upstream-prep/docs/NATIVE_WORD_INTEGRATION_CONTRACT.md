@@ -36,6 +36,21 @@ Sources:
 
 The last two modules are **integration sketches**, not validated with the real Zotero client.
 
+## Coordinate system: JS versus native C++
+
+- The JavaScript `wordStoryPreflight.mjs` snapshot reports `fieldRanges`
+  **relative** to `snapshot.text`; its `storyStart` shifts approved
+  replacements into Word's absolute coordinate system.
+- The native `MarkerRangeValidator` accepts all ranges in **absolute**
+  Word story coordinates and compares to a UTF-16 story snapshot.
+- Therefore, any JS/ctypes adapter MUST convert existing-field ranges
+  into story-relative offsets before JavaScript preflight, but use absolute
+  coordinates for the final C++ validator and the Word COM Range.
+- The native adapter MUST check `Range.Text` again before each insertion;
+  the initial snapshot alone is not a complete safety guarantee.
+- Word C++ `getDocument()` already opens a custom UndoRecord; adapter
+  `beginUndoTransaction()` means **adopt/reuse** it rather than nesting a second.
+
 ## Required Windows-native adapter contract (not yet implemented)
 
 The new Word plugin bridge should expose operations matching:

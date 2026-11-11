@@ -3,6 +3,7 @@
 Non scrive mai sul database SQLite Zotero. Importazioni tramite API locale e consenso.
 """
 from __future__ import annotations
+from contextlib import closing
 import argparse
 import csv
 import json
@@ -70,7 +71,10 @@ class Catalog:
                 # Consistent, one-time backup of the v0.3 database before migration.
                 backup = self.filename.with_name(self.filename.stem + '_backup_pre_0.4.sqlite3')
                 if not backup.exists():
-                    with sqlite3.connect(str(backup)) as archive:
+                    # sqlite3.Connection context managers commit/rollback but do NOT close.
+                    # Explicitly close the backup handle so Windows can delete
+                    # test temporary directories and avoid lingering file locks.
+                    with closing(sqlite3.connect(str(backup))) as archive:
                         self.db.backup(archive)
             self.db.execute('ALTER TABLE references_catalog ADD COLUMN openalex_id TEXT')
         self.db.execute('CREATE UNIQUE INDEX IF NOT EXISTS catalog_openalex_unique ON references_catalog(openalex_id) WHERE openalex_id IS NOT NULL')

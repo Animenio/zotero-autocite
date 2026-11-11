@@ -44,9 +44,9 @@ try {
 		Push-Location -LiteralPath $temp
 		try {
 			foreach ($p in $patches) {
-				& git apply --check --ignore-space-at-eol $p
+				& git apply --check --ignore-whitespace $p
 				if ($LASTEXITCODE -ne 0) { throw "Patch incompatibile: $p" }
-				& git apply --ignore-space-at-eol $p
+				& git apply --ignore-whitespace $p
 				if ($LASTEXITCODE -ne 0) { throw "Applicazione di prova fallita: $p" }
 			}
 			& git diff --check
@@ -68,9 +68,9 @@ try {
 	$applied = @()
 	try {
 		foreach ($p in $patches) {
-			& git apply --check --ignore-space-at-eol $p
+			& git apply --check --ignore-whitespace $p
 			if ($LASTEXITCODE -ne 0) { throw "Verifica finale fallita: $p" }
-			& git apply --ignore-space-at-eol $p
+			& git apply --ignore-whitespace $p
 			if ($LASTEXITCODE -ne 0) { throw "Applicazione fallita: $p" }
 			$applied += $p
 		}
@@ -79,7 +79,7 @@ try {
 	}
 	catch {
 		for ($i = $applied.Count - 1; $i -ge 0; $i--) {
-			& git apply --reverse --ignore-space-at-eol $applied[$i]
+			& git apply --reverse --ignore-whitespace $applied[$i]
 		}
 		throw
 	}

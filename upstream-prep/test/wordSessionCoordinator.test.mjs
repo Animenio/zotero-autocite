@@ -88,7 +88,7 @@ test('performs backup then native field insertion and session update in order', 
 		status: 'inserted_unsaved', applied: 1, backupPath: 'sample_BACKUP.docx'
 	});
 	assert.deepEqual(calls, [
-		'scan', 'lookup', 'verify', 'backup', 'begin', 'replace',
+		'scan', 'lookup', 'verify', 'backup', 'verify', 'begin', 'replace',
 		'fields', 'sync', 'register', 'refresh', 'commit'
 	]);
 });
@@ -183,4 +183,21 @@ test('tracked changes refuse any mutation', async () => {
 	let result = await convertNativeWordPlaceholders(context);
 	assert.equal(result.status, 'blocked');
 	assert.ok(!calls.includes('backup'));
+});
+
+test('Word text changes during backup stop all edits after an intact backup', async () => {
+	let { context, calls } = fixture();
+	let checks = 0;
+	context.word.verifyStorySnapshot = async () => {
+		checks++;
+		calls.push('verify');
+		return checks === 1;
+	};
+	let result = await convertNativeWordPlaceholders(context);
+	assert.equal(result.status, 'blocked');
+	assert.equal(result.backupPath, 'sample_BACKUP.docx');
+	assert.equal(checks, 2);
+	assert.ok(calls.includes('backup'));
+	assert.ok(!calls.includes('begin'));
+	assert.ok(!calls.includes('replace'));
 });

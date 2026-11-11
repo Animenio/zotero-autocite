@@ -1,0 +1,110 @@
+diff --git a/build/zoteroWinWordIntegration/document.cpp b/build/zoteroWinWordIntegration/document.cpp
+--- a/build/zoteroWinWordIntegration/document.cpp
++++ b/build/zoteroWinWordIntegration/document.cpp
+@@ -537,7 +537,37 @@
+ 	HANDLE_EXCEPTIONS_END
+ }
+ 
++// Read-only native snapshot of Word's main text story.
++// The returned string is allocated with _wcsdup and must be freed using freeData().
++// Word field codes can make Range.Text length differ from Range.End - Range.Start;
++// the JS caller reports that mismatch and must not use unreliable offsets to edit.
++statusCode __stdcall getMainStorySnapshot(document_t *doc, wchar_t **returnText,
++		long *returnStart, long *returnEnd) {
++	HANDLE_EXCEPTIONS_BEGIN
++	if (!doc || !returnText || !returnStart || !returnEnd) {
++		DIE(L"Invalid main-story snapshot arguments");
++	}
++	*returnText = NULL;
++	CStoryRanges stories = doc->comDoc.get_StoryRanges();
++	CRange mainStory = stories.Item(1); // wdMainTextStory (1)
++	const long start = mainStory.get_Start();
++	const long end = mainStory.get_End();
++	if (start < 0 || end < start) {
++		DIE(L"Invalid Word main-story coordinates");
++	}
++	CString contents = mainStory.get_Text();
++	wchar_t *copy = _wcsdup(contents);
++	if (!copy) {
++		DIE(L"Could not allocate main-story snapshot");
++	}
++	*returnText = copy;
++	*returnStart = start;
++	*returnEnd = end;
++	return STATUS_OK;
++	HANDLE_EXCEPTIONS_END
++}
++
+ // Retrieve all fields from the document
+ statusCode __stdcall getFields(document_t *doc, const wchar_t fieldType[],
+ 					           listNode_t** returnNode) {
+ 	HANDLE_EXCEPTIONS_BEGIN
+diff --git a/build/zoteroWinWordIntegration/zoteroWinWordIntegration.h b/build/zoteroWinWordIntegration/zoteroWinWordIntegration.h
+--- a/build/zoteroWinWordIntegration/zoteroWinWordIntegration.h
++++ b/build/zoteroWinWordIntegration/zoteroWinWordIntegration.h
+@@ -239,7 +239,10 @@
+ 	__declspec(dllexport) statusCode __stdcall setDocumentData(document_t *doc, const wchar_t documentData[]);
+ 	__declspec(dllexport) statusCode __stdcall insertField(document_t *doc, const wchar_t fieldType[],
+ 						                                   unsigned short noteType, field_t **returnValue);
++	// Read-only UTF-16 main-story snapshot; text must be freed with freeData().
++	__declspec(dllexport) statusCode __stdcall getMainStorySnapshot(
++		document_t *doc, wchar_t **returnText, long *returnStart, long *returnEnd);
+ 	__declspec(dllexport) statusCode __stdcall getFields(document_t *doc, const wchar_t fieldType[],
+ 						                                 listNode_t** returnNode);
+ 	__declspec(dllexport) statusCode __stdcall convert(document_t *doc, field_t* fields[], unsigned long nFields,
+ 					                                   const wchar_t toFieldType[], unsigned short noteType[]);
+diff --git a/components/zoteroWinWordIntegration.mjs b/components/zoteroWinWordIntegration.mjs
+--- a/components/zoteroWinWordIntegration.mjs
++++ b/components/zoteroWinWordIntegration.mjs
+@@ -106,7 +106,12 @@
+ 		
+ 		// statusCode getFields(document_t *doc, const jschar fieldType[],
+ 		//					    fieldListNode_t** returnNode);
++		// Read-only Word main story snapshot (caller frees result with freeData).
++		getMainStorySnapshot: lib.declare("getMainStorySnapshot", ctypes.stdcall_abi,
++			statusCode, document_t.ptr, ctypes.jschar.ptr.ptr,
++			ctypes.long.ptr, ctypes.long.ptr),
++
+ 		getFields: lib.declare("getFields", ctypes.stdcall_abi, statusCode, document_t.ptr,
+ 			ctypes.jschar.ptr, fieldListNode_t.ptr.ptr),
+ 		
+ 		// statusCode setBibliographyStyle(Document *doc, long firstLineIndent, 
+@@ -323,7 +328,38 @@
+ 		return new Field(returnValue, this._documentStatus);
+ 	},
+ 	
++	/**
++	 * Return the main-story text and absolute Word offsets without modifying it.
++	 * offsetsReliable is false if Word's story length differs from UTF-16 text
++	 * length; callers must refuse all edits in that case.
++	 */
++	getMainStorySnapshot: function() {
++		checkIfFreed(this._documentStatus);
++		var returnText = new ctypes.jschar.ptr();
++		var returnStart = new ctypes.long();
++		var returnEnd = new ctypes.long();
++		checkStatus(f.getMainStorySnapshot(this._document_t,
++			returnText.address(), returnStart.address(), returnEnd.address()));
++		try {
++			var contents = returnText.readString();
++			var start = parseInt(returnStart.value);
++			var end = parseInt(returnEnd.value);
++			return {
++				text: contents,
++				storyStart: start,
++				storyEnd: end,
++				storyType: 'main',
++				offsetsReliable: contents.length === end - start
++			};
++		}
++		finally {
++			if (!returnText.isNull()) {
++				f.freeData(returnText);
++			}
++		}
++	},
++
+ 	getFields: async function(fieldType) {
+ 		Zotero.debug("ZoteroWinWordIntegration: getFields", 4);
+ 		checkIfFreed(this._documentStatus);
+ 		var fieldListNode = new fieldListNode_t.ptr();

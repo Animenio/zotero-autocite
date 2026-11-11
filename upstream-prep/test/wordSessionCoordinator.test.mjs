@@ -58,7 +58,7 @@ function fixture(text = MARKER) {
 			async readMainStorySnapshot() {
 				calls.push('scan');
 				return {
-					text, storyType: 'main', storyStart: 0,
+					text, storyType: 'main', offsetsReliable: true, storyStart: 0,
 					isSaved: true, readOnly: false, trackRevisions: false,
 					fieldRanges: []
 				};
@@ -199,5 +199,19 @@ test('Word text changes during backup stop all edits after an intact backup', as
 	assert.equal(checks, 2);
 	assert.ok(calls.includes('backup'));
 	assert.ok(!calls.includes('begin'));
+	assert.ok(!calls.includes('replace'));
+});
+
+test('a Word main story with unreliable offsets is never backed up or edited', async () => {
+	let { context, calls } = fixture();
+	let scan = context.word.readMainStorySnapshot;
+	context.word.readMainStorySnapshot = async () => {
+		let snapshot = await scan();
+		snapshot.offsetsReliable = false;
+		return snapshot;
+	};
+	let result = await convertNativeWordPlaceholders(context);
+	assert.equal(result.status, 'blocked');
+	assert.ok(!calls.includes('backup'));
 	assert.ok(!calls.includes('replace'));
 });

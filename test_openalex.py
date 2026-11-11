@@ -2,6 +2,7 @@
 import json
 import tempfile
 import unittest
+from contextlib import closing
 from pathlib import Path
 from unittest.mock import patch
 
@@ -99,7 +100,9 @@ class OAIntegrationTests(unittest.TestCase):
             cat.close()
             # Simulate a pre-0.4 database by removing the new column via SQLite copy.
             import sqlite3
-            with sqlite3.connect(db) as conn:
+            # sqlite3's transaction context manager does not close the connection.
+            # Close explicitly before the Windows TemporaryDirectory cleanup.
+            with closing(sqlite3.connect(db)) as conn, conn:
                 conn.execute('DROP INDEX catalog_openalex_unique')
                 conn.execute('ALTER TABLE references_catalog DROP COLUMN openalex_id')
             cat=Catalog(db)

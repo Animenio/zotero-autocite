@@ -79,6 +79,22 @@ The local check executed 31 original Node tests plus 16 additional bridge
 smoke cases successfully. The full expanded GitHub test suite and the native
 Windows CI jobs still require separate confirmation.
 
+## First direct patch against the official Word repository
+
+We now maintain a minimal [read-only main-story snapshot patch](patches/zotero-word-for-windows-integration/0001-main-story-readonly-snapshot.patch)
+for the three actual native Word integration source files. The
+[safe PowerShell patch checker](scripts/apply-word-snapshot-patch.ps1)
+defaults to **check-only** and refuses to work on an altered Git checkout;
+`-Apply` must be given explicitly to modify a **separate source clone**.
+
+This is not a production release, not a compiled Zotero extension and
+does not modify the installed Word add-in. See the
+[Windows official build checklist](docs/WINDOWS_OFFICIAL_BUILD_CHECKLIST.md).
+
+**Important:** uncoded temporary Word fields are excluded from
+Zotero's forced field enumeration; the Session-registration sketch
+needs a corrected field lifecycle before write operations can be enabled.
+
 ## Scope and status
 
 | Capability | Status |

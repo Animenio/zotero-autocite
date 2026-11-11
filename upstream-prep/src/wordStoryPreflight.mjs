@@ -31,6 +31,9 @@ export function preflightWordStory(snapshot, batch) {
 	if (snapshot.storyType !== 'main') {
 		return block('Only the main document text story is supported');
 	}
+	if (snapshot.offsetsReliable !== true) {
+		return block('Word story text positions do not map reliably to UTF-16 offsets');
+	}
 	if (!snapshot.isSaved || snapshot.readOnly || snapshot.trackRevisions) {
 		return block('Word document must be saved, editable and without Track Changes');
 	}

@@ -49,6 +49,36 @@ license.
 Read [the official contribution rules and engineering gates](docs/UPSTREAM_CONTRIBUTION_RULES.md)
 before creating any upstream patch or modifying a Zotero Word template.
 
+## Zotero Session and Word-native research spike
+
+We now also have staged, independently reviewable experimental layers:
+
+- [`nativeCitationBatch.mjs`](src/nativeCitationBatch.mjs): converts scoped Zotero
+  keys into numeric `Zotero.Item.id` values and `citationItems: [{id}]`, never
+  serializing Word field JSON.
+- [`wordStoryPreflight.mjs`](src/wordStoryPreflight.mjs): rejects stale marker
+  text, unsupported Word stories, field collisions and unsafe state.
+- [`sessionCitationRegistration.mjs`](src/sessionCitationRegistration.mjs):
+  creates citations via the **real Zotero Session/Citation API shapes**,
+  after a native adapter has already inserted valid temporary fields.
+- [`wordSessionCoordinator.mjs`](src/wordSessionCoordinator.mjs):
+  outlines the strictly checked scan → verified backup → temporary field →
+  Session registration → update → commit/rollback sequence.
+- [`MarkerRangeValidator.cpp`](native/windows/MarkerRangeValidator.cpp):
+  portable C++17 UTF-16 range validation. It has been compiled and tested
+  locally with GCC under strict warnings and `-DNDEBUG`. This is not yet
+  linked into the official Zotero Word native DLL.
+- The [Windows native integration contract](docs/NATIVE_WORD_INTEGRATION_CONTRACT.md)
+  maps these stages to Zotero's actual Core and WinWord entrypoints.
+
+**Critical limitation:** the Session and Word coordinator modules are mocks/
+interface sketches, not executed inside Zotero. Real C++ COM operations, the
+JS/ctypes declarations, ribbon VBA and localization are **not yet implemented**.
+
+The local check executed 31 original Node tests plus 16 additional bridge
+smoke cases successfully. The full expanded GitHub test suite and the native
+Windows CI jobs still require separate confirmation.
+
 ## Scope and status
 
 | Capability | Status |
@@ -56,9 +86,12 @@ before creating any upstream patch or modifying a Zotero Word template.
 | Parse, validate and locate supported markers | Implemented, unit-tested |
 | Resolve using injected, read-only lookups | Implemented, unit-tested |
 | Refuse mismatched DOI/library/item key | Implemented, unit-tested |
-| Build and validate a transactional native edit plan | Implemented, simulated tests |
+| Build and validate a transactional native edit plan | Implemented in pure JS, simulated tests |
+| Prepare native Zotero Session citation inputs | Candidate implemented; mocked tests |
+| Verify Word UTF-16 ranges and existing-field overlap | C++ validator implemented; no COM DLL integration |
+| Register new fields via Zotero.Integration.Session | Experimental adapter only; live Zotero test missing |
 | Replace placeholders in **currently open Word** | **Not implemented** |
-| Call Zotero native integration/refresh | **Not implemented** |
+| Call Zotero native integration/refresh | **Not wired to official integration.js** |
 | Create or import library entries from OpenAlex | **Not in upstream scope** |
 | Compile and test Zotero's Windows C++ bridge | **Not performed** |
 

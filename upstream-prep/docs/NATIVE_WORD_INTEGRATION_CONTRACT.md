@@ -94,6 +94,33 @@ The eventual \`Zotero.Integration.Interface.prototype.convertCitationPlaceholder
 - Official Zotero test suite, not just Node tests; locally compile VBA via Debug → Compile Project and use the repository's unpack-template hooks.
 - User-visible messaging must be localized, not embedded English.
 
+## Read-only upstream patch prepared
+
+- `patches/zotero-word-for-windows-integration/0001-main-story-readonly-snapshot.patch`
+  adds a **read-only** `getMainStorySnapshot` native export and matching
+  JS/ctypes method, based on the official Word integration main-branch sources.
+- It returns `text`, `storyStart`, `storyEnd`, and `offsetsReliable`.
+  This is only one input to `wordStoryPreflight.mjs`; it still needs
+  protected field ranges, document saved/read-only/revision status, and
+  a verified native backup mechanism. Never fabricate these values.
+- The preflight now **requires** `offsetsReliable === true`; missing or
+  unreliable offset data blocks conversion.
+- GitHub Action `zotero-word-snapshot-patch.yml` checks patch applicability.
+  Actual Windows MSVC build and Word runtime verification are still pending.
+
+## Temporary field discovery caveat
+
+In Zotero Word's `field.cpp`, `initField()` filters for the prefixes
+` ADDIN ZOTERO_` and ` CSL_`. A temporary field with code `TEMP`
+will not be found by a forced `Session.getFields(true)` rescan.
+
+**Therefore, the current mock registration flow is intentionally NOT an
+upstream-ready Word conversion command.** Before inserting fields, implement
+and test a Session-owned temporary field lifecycle (cache registration
+or Zotero-native serialization *before* forced re-enumeration). A successful
+mock `Field.equals()` does not prove that `getFields(true)` can discover
+those fields in the Word DLL.
+
 ## Current blocker
 
 The feature is not present in Zotero's C++ library, JS/ctypes wrapper or Word template. The native interfaces above and their strict COM behavior still require implementation and Windows compilation. The testable modules in this branch are an engineering scaffold, not a deployable Zotero plugin.

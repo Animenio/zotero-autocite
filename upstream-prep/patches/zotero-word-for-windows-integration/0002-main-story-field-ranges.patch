@@ -1,0 +1,114 @@
+diff --git a/build/zoteroWinWordIntegration/document.cpp b/build/zoteroWinWordIntegration/document.cpp
+--- a/build/zoteroWinWordIntegration/document.cpp
++++ b/build/zoteroWinWordIntegration/document.cpp
+@@ -568,5 +568,52 @@
+ }
+ 
++// Read-only boundaries of all fields in the main Word story.
++// Output pairs are absolute Word [start,end) offsets, free using freeData().
++statusCode __stdcall getMainStoryFieldRanges(document_t *doc,
++		long **returnPairs, unsigned long *returnCount) {
++	HANDLE_EXCEPTIONS_BEGIN
++	if (!doc || !returnPairs || !returnCount) {
++		DIE(L"Invalid main-story field range arguments");
++	}
++	*returnPairs = NULL;
++	*returnCount = 0;
++	CRange story = doc->comDoc.get_StoryRanges().Item(1);
++	const long low = story.get_Start();
++	const long high = story.get_End();
++	CFields fields = story.get_Fields();
++	const long count = fields.get_Count();
++	if (count < 0 || count > 100000) {
++		DIE(L"Unsafe Word field count");
++	}
++	std::vector<long> pairs;
++	pairs.reserve(static_cast<size_t>(count) * 2);
++	for (long i = 1; i <= count; i++) {
++		CField field = fields.Item(i);
++		CRange code = field.get_Code();
++		CRange result = field.get_Result();
++		long start = code.get_Start() - 1;
++		long end = result.get_End() + 1;
++		if (start < low || end > high || end <= start) {
++			DIE(L"Unsupported Word field boundary");
++		}
++		pairs.push_back(start);
++		pairs.push_back(end);
++	}
++	if (!pairs.empty()) {
++		long *output = static_cast<long*>(malloc(pairs.size() * sizeof(long)));
++		if (!output) {
++			DIE(L"Cannot allocate Word field boundaries");
++		}
++		for (size_t i = 0; i < pairs.size(); i++) {
++			output[i] = pairs[i];
++		}
++		*returnPairs = output;
++	}
++	*returnCount = static_cast<unsigned long>(count);
++	return STATUS_OK;
++	HANDLE_EXCEPTIONS_END
++}
++
+ // Retrieve all fields from the document
+ statusCode __stdcall getFields(document_t *doc, const wchar_t fieldType[],
+ 					           listNode_t** returnNode) {
+diff --git a/build/zoteroWinWordIntegration/zoteroWinWordIntegration.h b/build/zoteroWinWordIntegration/zoteroWinWordIntegration.h
+--- a/build/zoteroWinWordIntegration/zoteroWinWordIntegration.h
++++ b/build/zoteroWinWordIntegration/zoteroWinWordIntegration.h
+@@ -243,5 +243,8 @@
+ 	__declspec(dllexport) statusCode __stdcall getMainStorySnapshot(
+ 		document_t *doc, wchar_t **returnText, long *returnStart, long *returnEnd);
++	// Read-only Word main-story field pairs [start,end); release with freeData().
++	__declspec(dllexport) statusCode __stdcall getMainStoryFieldRanges(
++		document_t *doc, long **returnPairs, unsigned long *returnCount);
+ 	__declspec(dllexport) statusCode __stdcall getFields(document_t *doc, const wchar_t fieldType[],
+ 						                                 listNode_t** returnNode);
+ 	__declspec(dllexport) statusCode __stdcall convert(document_t *doc, field_t* fields[], unsigned long nFields,
+diff --git a/components/zoteroWinWordIntegration.mjs b/components/zoteroWinWordIntegration.mjs
+--- a/components/zoteroWinWordIntegration.mjs
++++ b/components/zoteroWinWordIntegration.mjs
+@@ -112,5 +112,8 @@
+ 			ctypes.long.ptr, ctypes.long.ptr),
+ 
++		getMainStoryFieldRanges: lib.declare("getMainStoryFieldRanges", ctypes.stdcall_abi,
++			statusCode, document_t.ptr, ctypes.long.ptr.ptr, ctypes.unsigned_long.ptr),
++
+ 		getFields: lib.declare("getFields", ctypes.stdcall_abi, statusCode, document_t.ptr,
+ 			ctypes.jschar.ptr, fieldListNode_t.ptr.ptr),
+ 		
+@@ -360,5 +363,33 @@
+ 	},
+ 
++	// Word field coordinates, absolute in the main text story.
++	getMainStoryFieldRanges: function() {
++		checkIfFreed(this._documentStatus);
++		var values = new ctypes.long.ptr();
++		var count = new ctypes.unsigned_long();
++		checkStatus(f.getMainStoryFieldRanges(this._document_t,
++			values.address(), count.address()));
++		try {
++			var n = parseInt(count.value);
++			if (!Number.isSafeInteger(n) || n < 0 || n > 100000) {
++				throw new Error("Unsafe Word field count");
++			}
++			if (!n) return [];
++			if (values.isNull()) throw new Error("Word field list is absent");
++			var data = ctypes.cast(values, ctypes.long.array(n * 2).ptr).contents;
++			var ranges = [];
++			for (var i = 0; i < n; i++) {
++				ranges.push({
++					start: parseInt(data[2 * i]), end: parseInt(data[2 * i + 1])
++				});
++			}
++			return ranges;
++		}
++		finally {
++			if (!values.isNull()) f.freeData(values);
++		}
++	},
++
+ 	getFields: async function(fieldType) {
+ 		Zotero.debug("ZoteroWinWordIntegration: getFields", 4);
+ 		checkIfFreed(this._documentStatus);

@@ -32,6 +32,23 @@ Relevant upstream files are cited in [UPSTREAM_INTEGRATION_PLAN.md](docs/UPSTREA
 
 The portable syntax is **proposed for discussion**; it is not recognized by the existing Zotero Word plugin. Legacy aliases such as `[[Z:06937]]` are **not globally unique**: they must not be interpreted without the correct local catalog. Missing and ambiguous references never result in fabricated citations.
 
+## Zotero-native resolver candidate (first upstream-guided increment)
+
+The new [`zoteroNativeLookup.mjs`](src/zoteroNativeLookup.mjs) delegates item
+identification to the real Zotero APIs rather than a Python catalog, external
+API, or hand-built CSL field. It supports only existing, explicitly scoped
+`[[ZOTERO:user/ITEMKEY]]` and `[[ZOTERO:group:ID/ITEMKEY]]` sources.
+
+Its [test cases](test/zoteroNativeLookup.test.mjs) use mocked Zotero APIs and
+check identity, library isolation, missing/deleted items, lookup errors,
+and compatibility with the read-only planner. **They do not test the live
+Zotero application or Word.** This candidate code is marked
+`AGPL-3.0-or-later`; the independent AutoCite Desktop code retains its own
+license.
+
+Read [the official contribution rules and engineering gates](docs/UPSTREAM_CONTRIBUTION_RULES.md)
+before creating any upstream patch or modifying a Zotero Word template.
+
 ## Scope and status
 
 | Capability | Status |

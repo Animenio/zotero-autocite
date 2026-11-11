@@ -22,7 +22,7 @@ node --version
 npm test
 ```
 
-Expected: all parser, resolver, planning, Word preflight, Session and coordinator tests pass. The expanded branch currently defines **90** Node test cases (31 original + 59 newer); verify the actual number rather than treating it as an upstream guarantee.
+Expected: all parser, resolver, planning, Word preflight, Session and coordinator tests pass. The expanded branch currently defines **91** Node test cases (31 original + 60 newer); verify the actual number rather than treating it as an upstream guarantee.
 
 No instance of Word/Zotero is needed for these pure-JavaScript tests. This phase must not change a Word document or a Zotero database.
 

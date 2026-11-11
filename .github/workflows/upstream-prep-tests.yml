@@ -1,0 +1,28 @@
+name: Upstream preparation (pure JS)
+
+on:
+  push:
+    branches: [feature/upstream-word-placeholder-conversion]
+    paths:
+      - 'upstream-prep/**'
+      - '.github/workflows/upstream-prep-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22', '24']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Run pure JS tests
+        working-directory: upstream-prep
+        run: npm test

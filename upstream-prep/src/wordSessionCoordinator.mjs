@@ -80,7 +80,9 @@ export async function convertNativeWordPlaceholders(context) {
 		const registration = await registerNativeCitations(
 			context.session, context.integration, assignments
 		);
-		await word.commitUndoTransaction(transaction);
+		if (await word.commitUndoTransaction(transaction) !== true) {
+			throw new Error('Word undo transaction commit was not confirmed');
+		}
 		return {
 			status: 'inserted_unsaved',
 			applied: registration.registered,

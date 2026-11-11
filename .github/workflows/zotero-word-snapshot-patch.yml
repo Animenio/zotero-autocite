@@ -22,10 +22,10 @@ jobs:
       - name: Confirm patch applies cleanly
         working-directory: original
         run: |
-          git apply --check --ignore-space-at-eol "$GITHUB_WORKSPACE/upstream-prep/patches/zotero-word-for-windows-integration/0001-main-story-readonly-snapshot.patch"
-          git apply --ignore-space-at-eol "$GITHUB_WORKSPACE/upstream-prep/patches/zotero-word-for-windows-integration/0001-main-story-readonly-snapshot.patch"
-          git apply --check --ignore-space-at-eol "$GITHUB_WORKSPACE/upstream-prep/patches/zotero-word-for-windows-integration/0002-main-story-field-ranges.patch"
-          git apply --ignore-space-at-eol "$GITHUB_WORKSPACE/upstream-prep/patches/zotero-word-for-windows-integration/0002-main-story-field-ranges.patch"
+          git apply --check --ignore-whitespace "$GITHUB_WORKSPACE/upstream-prep/patches/zotero-word-for-windows-integration/0001-main-story-readonly-snapshot.patch"
+          git apply --ignore-whitespace "$GITHUB_WORKSPACE/upstream-prep/patches/zotero-word-for-windows-integration/0001-main-story-readonly-snapshot.patch"
+          git apply --check --ignore-whitespace "$GITHUB_WORKSPACE/upstream-prep/patches/zotero-word-for-windows-integration/0002-main-story-field-ranges.patch"
+          git apply --ignore-whitespace "$GITHUB_WORKSPACE/upstream-prep/patches/zotero-word-for-windows-integration/0002-main-story-field-ranges.patch"
           git diff --check
       - name: Confirm all three native interfaces have been updated
         working-directory: original

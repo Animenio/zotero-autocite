@@ -29,7 +29,7 @@ try {
 		throw 'La cartella indicata non è una repository Git.'
 	}
 	$dirty = & git status --porcelain
-	if ($LASTEXITCODE -ne 0 -or @($dirty).Count -gt 0) {
+	if ($LASTEXITCODE -ne 0 -or -not [string]::IsNullOrWhiteSpace(($dirty -join "`n"))) {
 		throw 'Working tree non pulito: salva o annulla le modifiche prima di applicare la patch.'
 	}
 	& git apply --check --ignore-space-at-eol $patch

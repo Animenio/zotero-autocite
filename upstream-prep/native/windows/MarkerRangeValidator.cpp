@@ -15,7 +15,7 @@ ValidationStatus ValidateMarkerRanges(
 			std::numeric_limits<std::int32_t>::max() - storyStart)) {
 		return ValidationStatus::InvalidStory;
 	}
-	const std::int64_t storyEnd = storyStart + storyText.size();
+	const std::int64_t storyEnd = storyStart + static_cast<std::int64_t>(storyText.size());
 	for (const auto& field : fields) {
 		if (field.start < storyStart || field.end <= field.start || field.end > storyEnd) {
 			return ValidationStatus::InvalidRange;

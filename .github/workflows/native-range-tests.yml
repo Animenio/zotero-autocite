@@ -1,0 +1,41 @@
+name: Native range validation (C++)
+
+on:
+  push:
+    branches: [feature/upstream-word-placeholder-conversion]
+    paths:
+      - 'upstream-prep/native/windows/**'
+      - '.github/workflows/native-range-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build C++17 with warnings treated as errors
+        working-directory: upstream-prep/native/windows
+        run: |
+          g++ -std=c++17 -O2 -DNDEBUG -Wall -Wextra -Werror \
+            MarkerRangeValidator.cpp MarkerRangeValidatorTest.cpp \
+            -o marker-validator
+      - name: Run native range safety tests
+        working-directory: upstream-prep/native/windows
+        run: ./marker-validator
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+      - name: Build C++17 with Visual Studio compiler
+        shell: cmd
+        working-directory: upstream-prep/native/windows
+        run: cl /nologo /std:c++17 /EHsc /W4 /WX /O2 /DNDEBUG MarkerRangeValidator.cpp MarkerRangeValidatorTest.cpp /Fe:marker-validator.exe
+      - name: Run native range safety tests
+        shell: cmd
+        working-directory: upstream-prep/native/windows
+        run: marker-validator.exe

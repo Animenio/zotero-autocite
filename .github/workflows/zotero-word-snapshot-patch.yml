@@ -24,6 +24,8 @@ jobs:
         run: |
           git apply --check --ignore-space-at-eol "$GITHUB_WORKSPACE/upstream-prep/patches/zotero-word-for-windows-integration/0001-main-story-readonly-snapshot.patch"
           git apply --ignore-space-at-eol "$GITHUB_WORKSPACE/upstream-prep/patches/zotero-word-for-windows-integration/0001-main-story-readonly-snapshot.patch"
+          git apply --check --ignore-space-at-eol "$GITHUB_WORKSPACE/upstream-prep/patches/zotero-word-for-windows-integration/0002-main-story-field-ranges.patch"
+          git apply --ignore-space-at-eol "$GITHUB_WORKSPACE/upstream-prep/patches/zotero-word-for-windows-integration/0002-main-story-field-ranges.patch"
           git diff --check
       - name: Confirm all three native interfaces have been updated
         working-directory: original
@@ -32,6 +34,10 @@ jobs:
           grep -q 'getMainStorySnapshot(' build/zoteroWinWordIntegration/zoteroWinWordIntegration.h
           grep -q 'getMainStorySnapshot: lib.declare' components/zoteroWinWordIntegration.mjs
           grep -q 'getMainStorySnapshot: function' components/zoteroWinWordIntegration.mjs
+          grep -q 'statusCode __stdcall getMainStoryFieldRanges' build/zoteroWinWordIntegration/document.cpp
+          grep -q 'getMainStoryFieldRanges(' build/zoteroWinWordIntegration/zoteroWinWordIntegration.h
+          grep -q 'getMainStoryFieldRanges: lib.declare' components/zoteroWinWordIntegration.mjs
+          grep -q 'getMainStoryFieldRanges: function' components/zoteroWinWordIntegration.mjs
 
 # This workflow checks patch application, not C++ compilation or Word COM behavior.
 # Compiling the full Word integration requires the official Visual Studio/MS Office environment.

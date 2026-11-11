@@ -4,7 +4,9 @@ on:
   push:
     branches: [feature/upstream-word-placeholder-conversion]
     paths:
-      - 'upstream-prep/**'
+      - 'upstream-prep/src/**'
+      - 'upstream-prep/test/**'
+      - 'upstream-prep/package.json'
       - '.github/workflows/upstream-prep-tests.yml'
   workflow_dispatch:
 

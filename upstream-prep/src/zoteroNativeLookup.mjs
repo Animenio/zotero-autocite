@@ -46,7 +46,12 @@ export function createZoteroNativeResolver(zotero) {
 				if (!Number.isSafeInteger(groupID)) {
 					return { status: 'error', message: 'Invalid group identifier' };
 				}
-				libraryID = zotero.Groups.getLibraryIDFromGroupID(groupID);
+				try {
+					libraryID = zotero.Groups.getLibraryIDFromGroupID(groupID);
+				}
+				catch (e) {
+					return { status: 'error', message: 'Zotero group lookup failed' };
+				}
 			}
 
 			if (!Number.isSafeInteger(libraryID) || libraryID <= 0) {

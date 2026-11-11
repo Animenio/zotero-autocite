@@ -15,7 +15,7 @@ function validateItem(item) {
   if (!item || typeof item !== 'object') return null;
   if (!/^[A-Z0-9]{8}$/.test(String(item.itemKey || ''))) return null;
   if (!/^(user|group:\d+)$/.test(String(item.library || ''))) return null;
-  return { library: item.library, itemKey: item.itemKey, title: String(item.title || ''), ...(item.doi ? { doi: String(item.doi).toLowerCase().replace(/^https?:\/\/(?:dx\.)?doi\.org\//, '') } : {}) };
+  return { library: item.library, itemKey: item.itemKey, title: String(item.title || ''), ...(Number.isSafeInteger(item.itemID) && item.itemID > 0 ? { itemID: item.itemID } : {}), ...(item.doi ? { doi: String(item.doi).toLowerCase().replace(/^https?:\/\/(?:dx\.)?doi\.org\//, '') } : {}) };
 }
 
 /**

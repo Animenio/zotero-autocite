@@ -58,6 +58,9 @@ export function createZoteroNativeResolver(zotero) {
 				if (!item) {
 					return { status: 'missing' };
 				}
+				if (!Number.isSafeInteger(item.id) || item.id <= 0) {
+					return { status: 'error', message: 'Invalid Zotero database item ID' };
+				}
 				if (item.libraryID !== libraryID || item.key !== reference.key) {
 					return { status: 'error', message: 'Item identity does not match scope' };
 				}
@@ -71,6 +74,7 @@ export function createZoteroNativeResolver(zotero) {
 					item: {
 						library: reference.library,
 						itemKey: reference.key,
+						itemID: item.id,
 						title: item.getDisplayTitle(),
 						doi: item.getField('DOI')
 					}

@@ -169,3 +169,15 @@ test('same key in group and user library resolves to different identities', asyn
 	assert.equal(plan.uniqueSources.length, 2);
 	assert.deepEqual(requests, [[1, KEY], [5, KEY]]);
 });
+
+test('group cache failures do not accidentally resolve sources from another library', async () => {
+	let { zotero, requests } = fakeZotero();
+	zotero.Groups.getLibraryIDFromGroupID = () => {
+		throw new Error('Group library cache not initialized');
+	};
+	let result = await createZoteroNativeResolver(zotero).resolveZoteroItem({
+		library: 'group:123', key: KEY
+	});
+	assert.equal(result.status, 'error');
+	assert.deepEqual(requests, []);
+});

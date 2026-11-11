@@ -12,7 +12,7 @@ function fixture(text = 'A ' + MARKER + ' B') {
 	let start = text.indexOf(MARKER);
 	return {
 		snapshot: {
-			text, storyType: 'main', storyStart: 80,
+			text, storyType: 'main', offsetsReliable: true, storyStart: 80,
 			isSaved: true, readOnly: false, trackRevisions: false,
 			fieldRanges: []
 		},
@@ -125,4 +125,15 @@ test('does not mutate Word snapshots or edit plans', () => {
 	preflightWordStory(snapshot, batch);
 	assert.equal(JSON.stringify(snapshot), beforeSnapshot);
 	assert.equal(JSON.stringify(batch), beforeBatch);
+});
+
+test('blocks ranges when Word reports unreliable UTF-16 offsets', () => {
+	let { snapshot, batch } = fixture();
+	snapshot.offsetsReliable = false;
+	assert.equal(preflightWordStory(snapshot, batch).status, 'blocked');
+});
+test('missing Word offset reliability cannot default to safe', () => {
+	let { snapshot, batch } = fixture();
+	delete snapshot.offsetsReliable;
+	assert.equal(preflightWordStory(snapshot, batch).status, 'blocked');
 });

@@ -22,7 +22,7 @@ node --version
 npm test
 ```
 
-Expected: all parser, resolver, planning, Word preflight, Session and coordinator tests pass. The expanded branch currently defines **91** Node test cases (31 original + 60 newer); verify the actual number rather than treating it as an upstream guarantee.
+Expected: all parser, resolver, planning, Word preflight, Session and coordinator tests pass. The expanded branch currently defines **94** Node test cases (31 original + 63 newer); verify the actual number rather than treating it as an upstream guarantee.
 
 No instance of Word/Zotero is needed for these pure-JavaScript tests. This phase must not change a Word document or a Zotero database.
 
@@ -89,3 +89,49 @@ No such complete patch has been compiled in this preparation branch.
 ## Status
 
 The independent Python COM **FieldFix** proof-of-concept was manually validated with Word/Zotero, but is not an upstream Word extension. The preparation branch currently contains pure-JS native-shape planning, mocked Session registration, and a standalone C++17 range validator. The full Word C++/JS-ctypes/VBA implementation remains to be built and tested.
+
+## Stage F — experimental read-only native snapshot patch (current increment)
+
+This patch implements **only read access** to Word's main story and a matching JS/ctypes
+method. It does not support conversion, Word backup, field collision extraction,
+or a user-visible Word ribbon button.
+
+Patch:
+`upstream-prep/patches/zotero-word-for-windows-integration/0001-main-story-readonly-snapshot.patch`
+
+Safe apply script:
+`upstream-prep/scripts/apply-word-snapshot-patch.ps1`
+
+Use a **clean, separately cloned** checkout of the official repository:
+```powershell
+git clone https://github.com/zotero/zotero-word-for-windows-integration.git C:\dev\zotero-word-for-windows-integration
+```
+
+From the `upstream-prep` of the **freshly downloaded** AutoCite feature branch:
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File ".\scripts\apply-word-snapshot-patch.ps1" -ZoteroWordRepository "C:\dev\zotero-word-for-windows-integration"
+```
+This checks compatibility without editing anything. Only after success, repeat
+the exact command with `-Apply`. The script refuses a dirty worktree.
+
+To build: open `C:\dev\zotero-word-for-windows-integration\build\zoteroWinWordIntegration\zoteroWinWordIntegration.sln`
+in **Visual Studio 2022**, follow its official `imports.h` setup, select
+**Release | x64**, and use **Build Solution**. Do **not** install the resulting
+DLL or replace Zotero.dotm: this increment lacks a test UI command.
+
+Important: the patch checker CI validates applicability against the official
+GitHub sources, not full MSVC compilation. The actual native build remains
+unconfirmed until Visual Studio reports successful compilation.
+
+## Critical discovery: temporary Word fields are not enumerated as Zotero citations
+
+Upstream `field.cpp` recognizes fields with prefixes
+` ADDIN ZOTERO_` or ` CSL_`. An arbitrary `TEMP`-only Word field does
+**not** automatically appear in a new `getFields(true)` enumeration.
+
+Our existing `sessionCitationRegistration.mjs` and `wordSessionCoordinator.mjs`
+are architectural sketches, not runnable integration commands. In the real
+Zotero Word plugin, they will block if they try to locate uncoded TEMP fields
+after a forced re-enumeration. A correct future feature must use Session-managed
+serialization/caching and prove the field lifecycle in the official integration
+tests before mutating Word documents.

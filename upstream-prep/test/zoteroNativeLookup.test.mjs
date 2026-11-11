@@ -17,6 +17,7 @@ function fakeZotero() {
 			async getByLibraryAndKeyAsync(libraryID, key) {
 				requests.push([libraryID, key]);
 				return {
+					id: libraryID === 5 ? 5252 : 4242,
 					libraryID,
 					key,
 					deleted: false,

@@ -4,7 +4,7 @@ Proposed discussion title: Add safe conversion of structured citation placeholde
 
 ## Problem
 
-Researchers currently using a short citation-code workflow must convert each placeholder to a live Zotero citation through separate steps or manually add references individually. AutoCite has demonstrated a copy-based workflow in Word, but cannot operate natively in the currently open document.
+Researchers currently using a short citation-code workflow must convert each placeholder to a live Zotero citation through separate steps or manually add references individually. AutoCite has demonstrated both a copy-based workflow and a separate Python COM proof of concept that converts markers in the currently open Word document. The latter was manually validated with Zotero Refresh and Add/Edit Citation; it is not integrated into Zotero's official Word plugin.
 
 ## Proposed small-scope change
 
@@ -22,7 +22,24 @@ Used for a daily academic writing workflow in a university department. The goal 
 
 ## Test evidence
 
-Offline tests in `upstream-prep/`; live Word integration is NOT YET IMPLEMENTED in this branch. A PR should only be opened after native Word integration, rollback and compatibility tests pass, and after maintainers confirm the desired architecture.
+The preparation branch now contains a Zotero-API scoped resolver, a native citation batch planner,
+a Word story safety preflight, a Session registration prototype, a transaction coordinator,
+and a separately compilable C++17 UTF-16 marker validator.
+
+Evidence to date:
+- Independent AutoCite Word Live FieldFix proof of concept was validated by the tester with
+  Microsoft Word Desktop, Zotero Refresh and Add/Edit Citation.
+- An independent local run passed 66/66 Python tests.
+- 31 original Node tests plus 16 additional local bridge smoke cases passed; the full
+  expanded test suite on GitHub still requires confirmation.
+- The portable C++17 range validator compiled with GCC using `-Wall -Wextra -Werror
+  -Wconversion -Wsign-conversion -DNDEBUG`, and its runtime assertions passed.
+
+**Still missing:** an actual Zotero client command, C++ OLE Automation scanner/inserter,
+JS/ctypes exports, Word ribbon localization and multi-architecture Visual Studio builds.
+The existing tests DO NOT certify this as a working Zotero extension.
+A PR should only be opened after real upstream integration tests, rollback and
+compatibility checks pass, and after maintainers confirm the intended architecture.
 
 ## Open questions for maintainers
 

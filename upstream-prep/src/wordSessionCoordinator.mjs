@@ -58,6 +58,15 @@ export async function convertNativeWordPlaceholders(context) {
 		throw new Error('Word backup was not verified: refusing document mutation');
 	}
 
+	// Backup may take time while Word is editable. Re-check that the
+	// original snapshot is still current before the first mutation.
+	if (await word.verifyStorySnapshot(snapshot) !== true) {
+		return {
+			status: 'blocked', applied: 0,
+			reason: 'Word document changed during backup', backupPath: backup.path
+		};
+	}
+
 	let transaction;
 	try {
 		transaction = await word.beginUndoTransaction();

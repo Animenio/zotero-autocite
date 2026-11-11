@@ -92,12 +92,17 @@ The independent Python COM **FieldFix** proof-of-concept was manually validated 
 
 ## Stage F — experimental read-only native snapshot patch (current increment)
 
-This patch implements **only read access** to Word's main story and a matching JS/ctypes
-method. It does not support conversion, Word backup, field collision extraction,
-or a user-visible Word ribbon button.
+These two patches implement **only read access** to Word's main-story text, and
+the boundaries of its existing Word fields, through C++ and matching JS/ctypes
+methods. It does not support conversion, Word backup, saved/revision-state checking,
+or a user-visible Word ribbon button. The field-range API emits absolute
+Word offsets, while the JavaScript preflight requires offsets *relative* to the
+snapshot story start. A future adapter must subtract that start only after
+confirming a consistent snapshot.
 
-Patch:
-`upstream-prep/patches/zotero-word-for-windows-integration/0001-main-story-readonly-snapshot.patch`
+Patches, applied in order:
+- `upstream-prep/patches/zotero-word-for-windows-integration/0001-main-story-readonly-snapshot.patch`
+- `upstream-prep/patches/zotero-word-for-windows-integration/0002-main-story-field-ranges.patch`
 
 Safe apply script:
 `upstream-prep/scripts/apply-word-snapshot-patch.ps1`

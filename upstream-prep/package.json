@@ -1,0 +1,9 @@
+{
+  "name": "@autocite/upstream-preparation",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Dependency-free, testable marker parser and resolution planning for a potential Zotero integration",
+  "engines": { "node": ">=20" },
+  "scripts": { "test": "node --test test/*.test.mjs" }
+}

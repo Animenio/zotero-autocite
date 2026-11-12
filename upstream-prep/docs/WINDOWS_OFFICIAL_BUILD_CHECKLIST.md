@@ -354,6 +354,40 @@ architecture. Do not retarget the solution or disable MFC to bypass the error.
 Status: ARM64 compilation remains pending; x64 and Win32 build and PE export
 checks have already passed. No test of the Word COM execution path yet.
 
+## November 12, 2026 — ARM64 MFC toolset-version mismatch confirmed
+
+After MFC v143 ARM64 installation, `MSB8041` persisted. Direct MSBuild
+property evaluation and disk inspection revealed the cause:
+
+```text
+MFC_KeyFile = C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.42.34433\atlmfc\lib\ARM64\mfcs140.lib
+VCToolsVersion = 14.42.34433
+VCToolsInstallDir = ...\MSVC\14.42.34433\
+PlatformShortName = ARM64
+SpectreLibs = (empty)
+```
+
+However, `where /R "<VS>\VC\Tools\MSVC" mfcs140.lib` found ARM64
+MFC library in **14.44.35207** and legacy **14.16.27023**, but not 14.42.
+Therefore the ARM64 MFC component is installed and the failure is caused by
+an obsolete/default `VCToolsVersion` selection. The v141 14.16 toolset must
+not be used to compile this v143 project.
+
+Safest next step: try nonpersistent MSBuild command-line override
+`/p:VCToolsVersion=14.44.35207`. First check evaluated
+`MFC_KeyFile` with `-getProperty`, then build if correct.
+
+```cmd
+msbuild "%USERPROFILE%\Downloads\zotero-word-for-windows-integration\build\zoteroWinWordIntegration\zoteroWinWordIntegration.vcxproj" /p:Configuration=Release /p:Platform=ARM64 /p:VCToolsVersion=14.44.35207 -getProperty:MFC_KeyFile,VCToolsVersion,VCToolsInstallDir
+msbuild "%USERPROFILE%\Downloads\zotero-word-for-windows-integration\build\zoteroWinWordIntegration\zoteroWinWordIntegration.vcxproj" /t:Build /p:Configuration=Release /p:Platform=ARM64 /p:VCToolsVersion=14.44.35207 /v:normal /nologo
+```
+
+Microsoft Learn confirms the `VCToolsVersion` override and explicitly
+documents how `MSB8041` derives `MFC_KeyFile` from that version and
+architecture. Status: diagnosed, **ARM64 build with override not yet run**.
+Do not add blind packages, copy MFC files between MSVC versions, retarget
+to `v141`, or install experimental DLLs in production.
+
 ## Stage F — experimental read-only native snapshot patch (current increment)
 
 The three patches (two new APIs and the C2228 correction) implement **only read access** to Word's main-story text, and

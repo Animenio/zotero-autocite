@@ -457,6 +457,44 @@ The next stage is to validate returned text, absolute Word coordinates,
 field exclusion spans and error handling *against real Word*, prior to
 adding any mutating placeholder-conversion command or user-facing UI.
 
+## November 13, 2026 — isolated Word COM native read-only smoke test prepared
+
+The tester was provided a **standalone Windows Python script** named
+`test_zotero_word_native_readonly.py` as a generated conversation attachment.
+Its source has been syntax-checked (`python -m py_compile`), but is **not yet
+executed on Windows**; the local machine's test result is pending.
+
+Prerequisites: 64-bit Python, `pywin32`, Microsoft Word and the known-good
+locally compiled x64 DLL at
+`%USERPROFILE%\Downloads\zotero-word-for-windows-integration\build\zoteroWinWordIntegration\x64\Release\zoteroWinWordIntegration.dll`.
+
+Safety constraints encoded in the script:
+- Refuses to run if any existing `WINWORD.EXE` process is detected.
+- Uses `DispatchEx('Word.Application')` for its own hidden test instance.
+- Creates a disposable .docx in a temporary directory and closes it
+  **without saving further changes** before removing that directory.
+- Loads the experimental DLL with `ctypes.WinDLL`; does not install or copy
+  any file into Zotero or Word templates.
+- Reads `getMainStorySnapshot` and `getMainStoryFieldRanges`, releasing
+  returned allocations through the native `freeData` export.
+- Uses `cleanup()`, `complete()` and `freeDocument()` to mirror the
+  existing Zotero native lifecycle; records that `getDocument()` itself
+  can temporarily change document settings.
+- Compares native text, start/end coordinates, and field [start,end)
+  pairs with Word COM results **before and after** each native read.
+- Performs a no-field test first and stops if the base snapshot disagrees;
+  follows with a one-field test if the first check passes; logs precise
+  differences and `offsets_reliable` separately.
+
+Run by saving attachment in Downloads and invoking:
+```cmd
+py -3 "%USERPROFILE%\Downloads\test_zotero_word_native_readonly.py"
+```
+
+Need user-provided runtime output before declaring this test successful.
+The test file was generated for the conversation; it is not part of the
+upstream patch or a released, production-tested Zotero integration.
+
 ## Stage F — experimental read-only native snapshot patch (current increment)
 
 The three patches (two new APIs and the C2228 correction) implement **only read access** to Word's main-story text, and

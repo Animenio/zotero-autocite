@@ -127,6 +127,35 @@ attempting to compile with Python or `sudo`.
 This build step is pending: no successful native Visual Studio compilation
 has yet been reported.
 
+## November 12, 2026 — first real MSVC Release x64 build
+
+The user successfully applied the first two read-only native patches to a separate Zotero Word source clone, opened the solution in Visual Studio 2022 Community and started **Release | x64**. The compiler reported:
+
+```
+document.cpp(580,47): error C2228: expression before .Item must have class/struct/union type
+Actual type: LPDISPATCH
+document.cpp(1129,23): warning C4018: signed/unsigned comparison
+Build: 0 succeeded, 1 failed
+```
+
+Diagnosis confirmed from the official source: `get_StoryRanges()` returns an
+`LPDISPATCH`. Its wrapper `CStoryRanges` must be constructed before
+invoking the `Item(1)` method. The official `document.cpp` already uses
+this exact pattern in other functions. The C4018 warning is unrelated and
+non-fatal.
+
+Corrected patch **0003**:
+```cpp
+CStoryRanges stories = doc->comDoc.get_StoryRanges();
+CRange story = stories.Item(1);
+```
+
+A local clone with 0001 and 0002 already applied is **dirty by design**,
+so the full patch-script check **must not** be rerun on that checkout.
+Instead apply 0003 directly or change those two lines in Visual Studio.
+Then rerun Release | x64. This fixes only the known C2228, and native build
+success still requires revalidation.
+
 ## Stage F — experimental read-only native snapshot patch (current increment)
 
 These two patches implement **only read access** to Word's main-story text, and
@@ -140,6 +169,7 @@ confirming a consistent snapshot.
 Patches, applied in order:
 - `upstream-prep/patches/zotero-word-for-windows-integration/0001-main-story-readonly-snapshot.patch`
 - `upstream-prep/patches/zotero-word-for-windows-integration/0002-main-story-field-ranges.patch`
+- `upstream-prep/patches/zotero-word-for-windows-integration/0003-fix-com-story-ranges-wrapper.patch`
 
 Safe apply script:
 `upstream-prep/scripts/apply-word-snapshot-patch.ps1`

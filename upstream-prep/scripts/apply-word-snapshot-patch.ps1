@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# Check or apply both READ-ONLY Zotero Word source patches.
+# Check or apply the native read-only and ARM64 build-fix Zotero Word source patches.
 # This script does NOT install or modify Word/Zotero applications.
 param(
     [Parameter(Mandatory = $true)]
@@ -13,7 +13,8 @@ $patchDir = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\patches\zote
 $patchNames = @(
     '0001-main-story-readonly-snapshot.patch',
     '0002-main-story-field-ranges.patch',
-    '0003-fix-com-story-ranges-wrapper.patch'
+    '0003-fix-com-story-ranges-wrapper.patch',
+    '0004-fix-arm64-release-output-paths.patch'
 )
 
 foreach ($name in @(

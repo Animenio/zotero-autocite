@@ -302,6 +302,35 @@ subsequent error reports absent ARM64 tools/MFC libraries, add the
 corresponding Visual Studio components. Do not reinstall the integration
 or rerun the complete patch script over the intentionally dirty checkout.
 
+## November 12, 2026 — ARM64 compiler toolset missing (MSB8020)
+
+After setting the ARM64 output/intermediate paths, Visual Studio 2022
+Release | ARM64 progressed past the MSBuild output configuration error.
+The next error is:
+
+```text
+Microsoft.CppBuild.targets(463,5): error MSB8020
+Cannot find build tools for v143 (Platform Toolset = 'v143').
+Build: 0 succeeded, 1 failed (0.244 seconds).
+```
+
+Given the successful Release | Win32 and Release | x64 MSVC v143
+builds, this points specifically to the optional **ARM64/ARM64EC
+compiler toolset**, rather than the C++ sources. Install from
+Visual Studio Installer > Modify > Individual components:
+- MSVC v143 – VS 2022 C++ ARM64/ARM64EC build tools (Latest).
+- C++ MFC for latest v143 build tools (ARM64/ARM64EC), because
+  the project config specifies `UseOfMfc=Static`.
+- Windows SDK if the installer reports the relevant dependency absent.
+
+Confirmed official Microsoft Visual Studio 2022 Build Tools component IDs:
+`Microsoft.VisualStudio.Component.VC.Tools.ARM64` and
+`Microsoft.VisualStudio.Component.VC.MFC.ARM64`.
+
+Do **not** retarget the project toolset or reinstall the Zotero plugin.
+After modifying Visual Studio, retry Release | ARM64 and inspect the
+generated DLL exports. The Win32 and x64 build/export successes remain valid.
+
 ## Stage F — experimental read-only native snapshot patch (current increment)
 
 The three patches (two new APIs and the C2228 correction) implement **only read access** to Word's main-story text, and

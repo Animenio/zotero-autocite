@@ -209,6 +209,31 @@ VS2022 solution, confirm its two exports, then (if relevant SDK/tools
 are installed) try `Release | ARM64`. Never run or install artifacts
 until the isolated runtime harness is ready.
 
+## November 12, 2026 — first Win32 native build PASS
+
+The tester ran Visual Studio 2022 Release | Win32 using the same
+read-only patches and C2228 wrapper correction. Output:
+
+```text
+document.cpp(1130,23): warning C4018 (signed/unsigned mismatch)
+Generated: build/zoteroWinWordIntegration/Release/zoteroWinWordIntegration.dll
+Compilation: 1 succeeded, 0 failed
+```
+
+The build also created the corresponding .lib/.exp files and executed
+the upstream project's custom local copy command. **Win32 compile/link
+PASS; its two required exports have not yet been checked.** This is not
+evidence of correct Word COM runtime behavior.
+
+Inspect the Win32 DLL via the Visual Studio Developer Command Prompt:
+
+```cmd
+dumpbin /exports "%USERPROFILE%\Downloads\zotero-word-for-windows-integration\build\zoteroWinWordIntegration\Release\zoteroWinWordIntegration.dll" | findstr /I "getMainStorySnapshot getMainStoryFieldRanges"
+```
+
+Both export names must appear before proceeding to ARM64. No installation
+or replacement of an active Word template or Zotero plugin is required.
+
 ## Stage F — experimental read-only native snapshot patch (current increment)
 
 The three patches (two new APIs and the C2228 correction) implement **only read access** to Word's main-story text, and

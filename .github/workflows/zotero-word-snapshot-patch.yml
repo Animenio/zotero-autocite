@@ -28,8 +28,10 @@ jobs:
           git apply --ignore-whitespace "$GITHUB_WORKSPACE/upstream-prep/patches/zotero-word-for-windows-integration/0002-main-story-field-ranges.patch"
           git apply --check --ignore-whitespace "$GITHUB_WORKSPACE/upstream-prep/patches/zotero-word-for-windows-integration/0003-fix-com-story-ranges-wrapper.patch"
           git apply --ignore-whitespace "$GITHUB_WORKSPACE/upstream-prep/patches/zotero-word-for-windows-integration/0003-fix-com-story-ranges-wrapper.patch"
+          git apply --check --ignore-whitespace "$GITHUB_WORKSPACE/upstream-prep/patches/zotero-word-for-windows-integration/0004-fix-arm64-release-output-paths.patch"
+          git apply --ignore-whitespace "$GITHUB_WORKSPACE/upstream-prep/patches/zotero-word-for-windows-integration/0004-fix-arm64-release-output-paths.patch"
           git diff --check
-      - name: Confirm all three native interfaces have been updated
+      - name: Confirm new native interfaces and ARM64 output configuration
         working-directory: original
         run: |
           grep -q 'statusCode __stdcall getMainStorySnapshot' build/zoteroWinWordIntegration/document.cpp
@@ -41,6 +43,8 @@ jobs:
           grep -q 'getMainStoryFieldRanges: lib.declare' components/zoteroWinWordIntegration.mjs
           grep -q 'getMainStoryFieldRanges: function' components/zoteroWinWordIntegration.mjs
           grep -q 'CStoryRanges stories = doc->comDoc.get_StoryRanges();' build/zoteroWinWordIntegration/document.cpp
+          grep -Fq '<OutDir Condition="' build/zoteroWinWordIntegration/zoteroWinWordIntegration.vcxproj
+          grep -Fq '$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>' build/zoteroWinWordIntegration/zoteroWinWordIntegration.vcxproj
 
 # This workflow checks patch application, not C++ compilation or Word COM behavior.
 # Compiling the full Word integration requires the official Visual Studio/MS Office environment.

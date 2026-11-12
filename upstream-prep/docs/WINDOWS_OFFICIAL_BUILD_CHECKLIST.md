@@ -265,6 +265,43 @@ Do not install or execute the experimental DLL in the production Zotero
 installation. Real Microsoft Word COM runtime and js-ctypes calls remain
 untested.
 
+## November 12, 2026 — ARM64 MSBuild OutputPath failure (fix prepared)
+
+The tester selected **Release | ARM64** in Visual Studio 2022 Community and
+the build failed at the MSBuild project-property validation stage, before
+compiling `document.cpp`, with:
+
+```text
+Microsoft.Common.CurrentVersion.targets(843,5):
+BaseOutputPath/OutputPath is not set for zoteroWinWordIntegration.vcxproj
+Configuration='Release' Platform='ARM64'
+Build: 0 succeeded, 1 failed (0.333 seconds)
+```
+
+Inspection of upstream `build/zoteroWinWordIntegration/zoteroWinWordIntegration.vcxproj`
+confirmed an explicit `OutDir` and `IntDir` are defined for
+`Release|Win32`, but no equivalent declarations exist for
+`Release|ARM64`. This lack is consistent with the observed error.
+
+Prepared **0004** to set only the ARM64 output and intermediate
+directories, preserving the successful x64 and Win32 configurations:
+
+```xml
+<OutDir Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+<IntDir Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(Platform)\$(Configuration)\</IntDir>
+```
+
+The user can set the same values in Visual Studio's project
+**Properties > Configuration Properties > General**, selecting
+**Configuration=Release, Platform=ARM64** (not All Configurations/Platforms).
+The expected output path becomes
+`build/zoteroWinWordIntegration/ARM64/Release/zoteroWinWordIntegration.dll`.
+
+**Status: corrective patch prepared, not yet compiled/tested.** If a
+subsequent error reports absent ARM64 tools/MFC libraries, add the
+corresponding Visual Studio components. Do not reinstall the integration
+or rerun the complete patch script over the intentionally dirty checkout.
+
 ## Stage F — experimental read-only native snapshot patch (current increment)
 
 The three patches (two new APIs and the C2228 correction) implement **only read access** to Word's main-story text, and

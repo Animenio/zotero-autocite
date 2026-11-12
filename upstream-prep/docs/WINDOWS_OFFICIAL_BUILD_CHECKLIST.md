@@ -90,6 +90,43 @@ No such complete patch has been compiled in this preparation branch.
 
 The independent Python COM **FieldFix** proof-of-concept was manually validated with Word/Zotero, but is not an upstream Word extension. The preparation branch currently contains pure-JS native-shape planning, mocked Session registration, and a standalone C++17 range validator. The full Word C++/JS-ctypes/VBA implementation remains to be built and tested.
 
+## First local Visual Studio build after patch application
+
+The native patch has been applied in an independent clone, affecting only:
+`build/zoteroWinWordIntegration/document.cpp`,
+`build/zoteroWinWordIntegration/zoteroWinWordIntegration.h`, and
+`components/zoteroWinWordIntegration.mjs`.
+
+Open the exact official solution from **Windows Command Prompt**:
+
+```cmd
+start "" "%USERPROFILE%\Downloads\zotero-word-for-windows-integration\build\zoteroWinWordIntegration\zoteroWinWordIntegration.sln"
+```
+
+In Visual Studio 2022 select **Release | x64**, then **Build > Build Solution**
+(or press Ctrl+Shift+B). Use the **Desktop development with C++**
+toolchain with MSVC v143, Windows SDK and C++ MFC libraries if prompted.
+
+**Important verification:** the official README mentions `imports.h`,
+but a file at `build/zoteroWinWordIntegration/imports.h` is absent from
+the inspected upstream tree, and the `.vcxproj` does not reference it.
+Do **not** create or modify an `imports.h` file until a compiler error
+actually identifies a missing import.
+
+The project defines a custom build command copying the DLL into the clone's
+own `install/` directory. This is a **local build artifact**, not an
+installation into the user's Zotero/Word programs. Do **not** manually
+copy the DLL into active Word/Zotero directories or replace `Zotero.dotm`.
+
+If the build fails, capture the first compiler error plus its file/line
+and the final `Succeeded/Failed` summary; do not send only the last
+linker error. If the solution cannot be opened or Visual Studio 2022 is not
+installed, install VS using the official Microsoft installer rather than
+attempting to compile with Python or `sudo`.
+
+This build step is pending: no successful native Visual Studio compilation
+has yet been reported.
+
 ## Stage F — experimental read-only native snapshot patch (current increment)
 
 These two patches implement **only read access** to Word's main-story text, and

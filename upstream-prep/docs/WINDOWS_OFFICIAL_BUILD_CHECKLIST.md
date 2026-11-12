@@ -331,6 +331,29 @@ Do **not** retarget the project toolset or reinstall the Zotero plugin.
 After modifying Visual Studio, retry Release | ARM64 and inspect the
 generated DLL exports. The Win32 and x64 build/export successes remain valid.
 
+## November 12, 2026 — ARM64 MFC requirement confirmed (MSB8041)
+
+After the ARM64 v143 compiler/toolset installation, the Visual Studio GUI
+build showed an unqualified failure. The developer prompt's explicit MSBuild
+invocation identified the missing dependency:
+
+```text
+msbuild zoteroWinWordIntegration.vcxproj /t:Build /p:Configuration=Release /p:Platform=ARM64 /v:normal /nologo
+Microsoft.CppBuild.targets(504,5): error MSB8041:
+MFC libraries are required for this project.
+Build: 0 warnings, 1 error, 0.14 sec.
+```
+
+The ARM64 v143 compiler is now detected; **C++ MFC for latest v143 build
+tools (ARM64/ARM64EC)** must also be installed via **Visual Studio Installer
+> Modify > Individual components > search MFC**. Zotero's project uses
+`UseOfMfc=Static`. Microsoft's MSB8041 documentation confirms that these
+libraries are not installed by default and must match the toolset and target
+architecture. Do not retarget the solution or disable MFC to bypass the error.
+
+Status: ARM64 compilation remains pending; x64 and Win32 build and PE export
+checks have already passed. No test of the Word COM execution path yet.
+
 ## Stage F — experimental read-only native snapshot patch (current increment)
 
 The three patches (two new APIs and the C2228 correction) implement **only read access** to Word's main-story text, and

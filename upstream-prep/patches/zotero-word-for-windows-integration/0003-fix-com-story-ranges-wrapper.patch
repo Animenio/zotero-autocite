@@ -1,0 +1,13 @@
+diff --git a/build/zoteroWinWordIntegration/document.cpp b/build/zoteroWinWordIntegration/document.cpp
+--- a/build/zoteroWinWordIntegration/document.cpp
++++ b/build/zoteroWinWordIntegration/document.cpp
+@@ -577,7 +577,8 @@
+ 	}
+ 	*returnPairs = NULL;
+ 	*returnCount = 0;
+-	CRange story = doc->comDoc.get_StoryRanges().Item(1);
++	CStoryRanges stories = doc->comDoc.get_StoryRanges();
++	CRange story = stories.Item(1);
+ 	const long low = story.get_Start();
+ 	const long high = story.get_End();
+ 	CFields fields = story.get_Fields();

@@ -181,6 +181,34 @@ header declarations and DLL being inspected; **do not install this DLL**.
 A DLL export check does not validate field geometry or the behavior of COM
 objects in Word.
 
+## November 12, 2026 — PE export inspection PASS
+
+After the corrected Visual Studio 2022 Community **Release | x64**
+compile succeeded, the tester used the **Visual Studio 2022 Developer
+Command Prompt v17.14.45** to inspect the built DLL:
+
+```cmd
+dumpbin /exports "%USERPROFILE%\Downloads\zotero-word-for-windows-integration\build\zoteroWinWordIntegration\x64\Release\zoteroWinWordIntegration.dll" | findstr /I "getMainStorySnapshot getMainStoryFieldRanges"
+```
+
+Actual output:
+
+```text
+18   11 000053C0 getMainStoryFieldRanges
+19   12 00005130 getMainStorySnapshot
+```
+
+**Result: both intended API names are exported by the Release x64 DLL.**
+This proves link/export visibility only. The new functions have **not**
+been invoked through `js-ctypes` or tested against Microsoft Word COM;
+valid field span coordinates, CString ownership, and runtime safety remain
+open validation tasks. Do not install the DLL or overwrite `Zotero.dotm`.
+
+Next non-invasive validation: compile `Release | Win32` using the official
+VS2022 solution, confirm its two exports, then (if relevant SDK/tools
+are installed) try `Release | ARM64`. Never run or install artifacts
+until the isolated runtime harness is ready.
+
 ## Stage F — experimental read-only native snapshot patch (current increment)
 
 The three patches (two new APIs and the C2228 correction) implement **only read access** to Word's main-story text, and

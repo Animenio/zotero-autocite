@@ -419,6 +419,44 @@ This is **compile/link success only**, not evidence of runtime Word COM
 correctness or Zotero JS integration. No native DLL has been intentionally
 installed into the user's active Zotero deployment as part of this test.
 
+## November 13, 2026 — ARM64 PE export and machine header inspection PASS
+
+The tester inspected the actual ARM64 Release DLL after the first
+successful MSVC v143 (14.44.35207) cross-build.
+
+```text
+dumpbin /exports "...\ARM64\Release\zoteroWinWordIntegration.dll"
+18   11 00006008 getMainStoryFieldRanges
+19   12 00005DB0 getMainStorySnapshot
+
+dumpbin /headers "...\ARM64\Release\zoteroWinWordIntegration.dll"
+AA64 machine (ARM64)
+```
+
+**Result: all three official architectures are now compile/link PASS and
+both new API names are present in each PE export table.** Specifically:
+x64 exports both undecorated names; Win32 exports
+`_getMainStoryFieldRanges@12` and `_getMainStorySnapshot@16`
+(correct stdcall decorations); ARM64 exports both undecorated names and
+the PE header confirms machine type AA64. No ARM64 *runtime* test was run.
+
+### Runtime safety condition before live Word test
+
+Despite both new API bodies being read-only, the **existing** Zotero
+`getDocument()` function is *not side-effect-free*. It can modify Word
+TrackRevisions, view/revisions display, and start a custom undo record.
+Therefore smoke testing must use a disposable Word document in a
+separate test instance with no active user documents. On success or error,
+pair `getDocument()` with the appropriate `cleanup()`,
+`complete()`, and `freeDocument()` calls, and close the disposable
+document without saving unwanted changes. An isolated harness is
+recommended; do not use a production document or replace an installed
+Zotero DLL for this test.
+
+The next stage is to validate returned text, absolute Word coordinates,
+field exclusion spans and error handling *against real Word*, prior to
+adding any mutating placeholder-conversion command or user-facing UI.
+
 ## Stage F — experimental read-only native snapshot patch (current increment)
 
 The three patches (two new APIs and the C2228 correction) implement **only read access** to Word's main-story text, and

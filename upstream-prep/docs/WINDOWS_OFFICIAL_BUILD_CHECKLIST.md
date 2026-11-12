@@ -234,6 +234,37 @@ dumpbin /exports "%USERPROFILE%\Downloads\zotero-word-for-windows-integration\bu
 Both export names must appear before proceeding to ARM64. No installation
 or replacement of an active Word template or Zotero plugin is required.
 
+## November 12, 2026 — Win32 export inspection PASS
+
+The tester inspected both independently compiled DLLs in the
+Visual Studio 2022 Developer Command Prompt v17.14.45.
+
+```text
+x64 /Release/:
+ 18  11 000053C0 getMainStoryFieldRanges
+ 19  12 00005130 getMainStorySnapshot
+
+Win32 /Release/:
+ 18  11 00004DF0 _getMainStoryFieldRanges@12
+ 19  12 00004B90 _getMainStorySnapshot@16
+```
+
+**Result:** PE exports are present in both x64 and Win32 binaries. The Win32
+leading underscore and trailing `@N` are the normal `__stdcall` decorated
+symbol names (N is the argument byte count), not a failure. The existing
+Zotero JS wrapper declares functions with `ctypes.stdcall_abi` (which
+automatically handles this name decoration on Windows, unlike
+`ctypes.winapi_abi`). Sources: Mozilla js-ctypes ABI documentation and
+Microsoft's documentation on `__stdcall` exported names.
+
+Next: **Release | ARM64** using Visual Studio 2022 and the official
+Zotero Word integration solution. Compile success and PE exports
+must each be checked separately.
+
+Do not install or execute the experimental DLL in the production Zotero
+installation. Real Microsoft Word COM runtime and js-ctypes calls remain
+untested.
+
 ## Stage F — experimental read-only native snapshot patch (current increment)
 
 The three patches (two new APIs and the C2228 correction) implement **only read access** to Word's main-story text, and

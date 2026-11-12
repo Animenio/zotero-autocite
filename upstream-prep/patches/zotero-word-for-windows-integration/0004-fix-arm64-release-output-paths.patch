@@ -1,0 +1,12 @@
+diff --git a/build/zoteroWinWordIntegration/zoteroWinWordIntegration.vcxproj b/build/zoteroWinWordIntegration/zoteroWinWordIntegration.vcxproj
+--- a/build/zoteroWinWordIntegration/zoteroWinWordIntegration.vcxproj
++++ b/build/zoteroWinWordIntegration/zoteroWinWordIntegration.vcxproj
+@@ -104,6 +104,8 @@
+     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)$(Configuration)\</OutDir>
+     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
+     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
+     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
++    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
++    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">$(Platform)\$(Configuration)\</IntDir>
+     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">false</LinkIncremental>
+   </PropertyGroup>

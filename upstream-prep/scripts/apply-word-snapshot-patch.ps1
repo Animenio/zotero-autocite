@@ -12,7 +12,8 @@ $repo = (Resolve-Path -LiteralPath $ZoteroWordRepository).Path
 $patchDir = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\patches\zotero-word-for-windows-integration')).Path
 $patchNames = @(
     '0001-main-story-readonly-snapshot.patch',
-    '0002-main-story-field-ranges.patch'
+    '0002-main-story-field-ranges.patch',
+    '0003-fix-com-story-ranges-wrapper.patch'
 )
 
 foreach ($name in @(
@@ -80,7 +81,7 @@ try {
             }
         }
 
-        Write-Host 'ENTRAMBE LE PATCH COMPATIBILI: clone originale invariato.'
+        Write-Host 'TUTTE LE PATCH COMPATIBILI: clone originale invariato.'
         if (-not $Apply) {
             Write-Host 'Per applicarle al clone, ripeti aggiungendo -Apply.'
             return

@@ -388,6 +388,37 @@ architecture. Status: diagnosed, **ARM64 build with override not yet run**.
 Do not add blind packages, copy MFC files between MSVC versions, retarget
 to `v141`, or install experimental DLLs in production.
 
+## November 13, 2026 — ARM64 Release native build PASS (MSVC 14.44.35207)
+
+A full real MSBuild ARM64 Release compile/link succeeded after specifying the
+installed toolset version whose ARM64 MFC libraries are present:
+
+```cmd
+msbuild "%USERPROFILE%\Downloads\zotero-word-for-windows-integration\build\zoteroWinWordIntegration\zoteroWinWordIntegration.vcxproj" /t:Build /p:Configuration=Release /p:Platform=ARM64 /p:VCToolsVersion=14.44.35207 /v:normal /nologo
+```
+
+Actual log: compiler `MSVC\14.44.35207\bin\HostX86\arm64\CL.exe`;
+`link.exe /MACHINE:ARM64`; compiled `document.cpp`, `field.cpp`,
+`utilities.cpp`; created
+`build/zoteroWinWordIntegration/ARM64/Release/zoteroWinWordIntegration.dll`
+plus its `.lib` and `.exp`; custom build step copied
+`install/libzoteroWinWordIntegration_ARM64.dll` in the *source clone*.
+Final MSBuild result **0 errors, 1 nonblocking C4018 warning**, elapsed
+5.94 seconds.
+
+This confirms all **three architectures build**: Win32, x64, ARM64.
+Win32 and x64 exports have been verified, but ARM64 PE exports and machine
+header were **not yet inspected**. They should be checked via:
+
+```cmd
+dumpbin /exports "%USERPROFILE%\Downloads\zotero-word-for-windows-integration\build\zoteroWinWordIntegration\ARM64\Release\zoteroWinWordIntegration.dll" | findstr /I "getMainStorySnapshot getMainStoryFieldRanges"
+dumpbin /headers "%USERPROFILE%\Downloads\zotero-word-for-windows-integration\build\zoteroWinWordIntegration\ARM64\Release\zoteroWinWordIntegration.dll" | findstr /I "machine"
+```
+
+This is **compile/link success only**, not evidence of runtime Word COM
+correctness or Zotero JS integration. No native DLL has been intentionally
+installed into the user's active Zotero deployment as part of this test.
+
 ## Stage F — experimental read-only native snapshot patch (current increment)
 
 The three patches (two new APIs and the C2228 correction) implement **only read access** to Word's main-story text, and

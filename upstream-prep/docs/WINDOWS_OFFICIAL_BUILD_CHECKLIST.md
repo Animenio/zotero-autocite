@@ -153,12 +153,37 @@ CRange story = stories.Item(1);
 A local clone with 0001 and 0002 already applied is **dirty by design**,
 so the full patch-script check **must not** be rerun on that checkout.
 Instead apply 0003 directly or change those two lines in Visual Studio.
-Then rerun Release | x64. This fixes only the known C2228, and native build
-success still requires revalidation.
+The user subsequently applied the equivalent two-line correction manually
+in the existing Visual Studio checkout and reran the MSVC build:
+
+```
+Configuration: Release x64
+document.cpp(1130,23): warning C4018: signed/unsigned comparison
+Generated: build/zoteroWinWordIntegration/x64/Release/zoteroWinWordIntegration.dll
+Compilation: 1 succeeded, 0 failed
+```
+
+**Result: native DLL compilation PASS (MSVC v143, Release x64).**
+This establishes compile/link success only. The two newly exported functions
+have not yet been checked via PE exports, invoked through js-ctypes, or tested
+with a real Word main story. The existing C4018 warning remains nonblocking.
+
+Next safe read-only smoke test: open **Visual Studio 2022 > Tools > Command
+Line > Developer Command Prompt**, then inspect the generated DLL without
+installing or executing it:
+
+```cmd
+dumpbin /exports "%USERPROFILE%\Downloads\zotero-word-for-windows-integration\build\zoteroWinWordIntegration\x64\Release\zoteroWinWordIntegration.dll" | findstr /I "getMainStorySnapshot getMainStoryFieldRanges"
+```
+
+The inspection must list both exports. If one is absent, stop and check the
+header declarations and DLL being inspected; **do not install this DLL**.
+A DLL export check does not validate field geometry or the behavior of COM
+objects in Word.
 
 ## Stage F — experimental read-only native snapshot patch (current increment)
 
-These two patches implement **only read access** to Word's main-story text, and
+The three patches (two new APIs and the C2228 correction) implement **only read access** to Word's main-story text, and
 the boundaries of its existing Word fields, through C++ and matching JS/ctypes
 methods. It does not support conversion, Word backup, saved/revision-state checking,
 or a user-visible Word ribbon button. The field-range API emits absolute

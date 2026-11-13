@@ -1,0 +1,115 @@
+diff --git a/build/zoteroWinWordIntegration/document.cpp b/build/zoteroWinWordIntegration/document.cpp
+--- a/build/zoteroWinWordIntegration/document.cpp
++++ b/build/zoteroWinWordIntegration/document.cpp
+@@ -616,4 +616,60 @@
+ }
+ 
++// Read a field-free Word range only when its UTF-16 offsets are reliable.
++// This entry point does not modify the Word document content.
++statusCode __stdcall getVerifiedMainStorySegment(document_t *doc,
++        long start, long end, wchar_t **returnText) {
++	HANDLE_EXCEPTIONS_BEGIN
++	if (!doc || !returnText) {
++		DIE(L"Invalid verified segment arguments");
++	}
++	*returnText = NULL;
++	CStoryRanges stories = doc->comDoc.get_StoryRanges();
++	CRange story = stories.Item(1);
++	const long low = story.get_Start();
++	const long high = story.get_End();
++	if (start < low || end > high || end <= start ||
++		end - start > 16000000L) {
++		DIE(L"Unsafe Word segment coordinates");
++	}
++	CFields fields = story.get_Fields();
++	const long count = fields.get_Count();
++	if (count < 0 || count > 100000) {
++		DIE(L"Unsafe Word field count");
++	}
++	for (long i = 1; i <= count; i++) {
++		CField field = fields.Item(i);
++		CRange code = field.get_Code();
++		CRange result = field.get_Result();
++		const long protectedStart = code.get_Start() - 1;
++		const long protectedEnd = result.get_End() + 1;
++		if (protectedStart < low || protectedEnd > high ||
++			protectedEnd <= protectedStart) {
++			DIE(L"Unsafe protected Word field boundaries");
++		}
++		if (start < protectedEnd && end > protectedStart) {
++			DIE(L"Requested segment overlaps a Word field");
++		}
++	}
++	CRange segment = story.get_Duplicate();
++	segment.put_Start(start);
++	segment.put_End(end);
++	if (segment.get_Start() != start || segment.get_End() != end) {
++		DIE(L"Word changed segment boundaries");
++	}
++	CString contents = segment.get_Text();
++	if (contents.GetLength() != end - start ||
++		wcslen(contents.GetString()) != static_cast<size_t>(contents.GetLength())) {
++		DIE(L"Unreliable UTF-16 Word segment coordinates");
++	}
++	wchar_t *copy = _wcsdup(contents);
++	if (!copy) {
++		DIE(L"Could not allocate verified segment");
++	}
++	*returnText = copy;
++	return STATUS_OK;
++	HANDLE_EXCEPTIONS_END
++}
++
+ // Retrieve all fields from the document
+ statusCode __stdcall getFields(document_t *doc, const wchar_t fieldType[],
+diff --git a/build/zoteroWinWordIntegration/zoteroWinWordIntegration.h b/build/zoteroWinWordIntegration/zoteroWinWordIntegration.h
+--- a/build/zoteroWinWordIntegration/zoteroWinWordIntegration.h
++++ b/build/zoteroWinWordIntegration/zoteroWinWordIntegration.h
+@@ -246,4 +246,7 @@
+ 	__declspec(dllexport) statusCode __stdcall getMainStoryFieldRanges(
+ 		document_t *doc, long **returnPairs, unsigned long *returnCount);
++	// Read-only field-free UTF-16 segment; release result with freeData().
++	__declspec(dllexport) statusCode __stdcall getVerifiedMainStorySegment(
++		document_t *doc, long start, long end, wchar_t **returnText);
+ 	__declspec(dllexport) statusCode __stdcall getFields(document_t *doc, const wchar_t fieldType[],
+ 						                                 listNode_t** returnNode);
+diff --git a/components/zoteroWinWordIntegration.mjs b/components/zoteroWinWordIntegration.mjs
+--- a/components/zoteroWinWordIntegration.mjs
++++ b/components/zoteroWinWordIntegration.mjs
+@@ -114,4 +114,7 @@
+ 		getMainStoryFieldRanges: lib.declare("getMainStoryFieldRanges", ctypes.stdcall_abi,
+ 			statusCode, document_t.ptr, ctypes.long.ptr.ptr, ctypes.unsigned_long.ptr),
++
++		getVerifiedMainStorySegment: lib.declare("getVerifiedMainStorySegment", ctypes.stdcall_abi,
++			statusCode, document_t.ptr, ctypes.long, ctypes.long, ctypes.jschar.ptr.ptr),
+ 
+ 		getFields: lib.declare("getFields", ctypes.stdcall_abi, statusCode, document_t.ptr,
+@@ -391,4 +394,28 @@
+ 	},
+ 
++	// Read a field-free Word range only after native offset validation.
++	// Does not authorize Word modifications or bypass whole-document preflight.
++	getVerifiedMainStorySegment: function(start, end) {
++		checkIfFreed(this._documentStatus);
++		if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) ||
++			start < 0 || end <= start || end > 2147483647 || end - start > 16000000) {
++			throw new Error("Unsafe Word segment coordinates");
++		}
++		var value = new ctypes.jschar.ptr();
++		checkStatus(f.getVerifiedMainStorySegment(this._document_t,
++			ctypes.long(start), ctypes.long(end), value.address()));
++		try {
++			if (value.isNull()) throw new Error("Verified Word segment is absent");
++			var text = value.readString();
++			if (text.length !== end - start) {
++				throw new Error("Word segment coordinate length mismatch");
++			}
++			return {text: text, start: start, end: end, offsetsReliable: true};
++		}
++		finally {
++			if (!value.isNull()) f.freeData(value);
++		}
++	},
++
+ 	getFields: async function(fieldType) {
+ 		Zotero.debug("ZoteroWinWordIntegration: getFields", 4);

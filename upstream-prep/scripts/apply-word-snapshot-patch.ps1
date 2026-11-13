@@ -14,7 +14,8 @@ $patchNames = @(
     '0001-main-story-readonly-snapshot.patch',
     '0002-main-story-field-ranges.patch',
     '0003-fix-com-story-ranges-wrapper.patch',
-    '0004-fix-arm64-release-output-paths.patch'
+    '0004-fix-arm64-release-output-paths.patch',
+    '0005-verified-main-story-field-free-segment.patch'
 )
 
 foreach ($name in @(

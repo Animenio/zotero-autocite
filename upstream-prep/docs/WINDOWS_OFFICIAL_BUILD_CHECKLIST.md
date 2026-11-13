@@ -495,6 +495,61 @@ Need user-provided runtime output before declaring this test successful.
 The test file was generated for the conversation; it is not part of the
 upstream patch or a released, production-tested Zotero integration.
 
+## November 13, 2026 — real Word runtime TEST A PASS; one-field oracle fixed
+
+User executed first version of the isolated Windows `ctypes.WinDLL` +
+`pywin32` harness using an already-built x64 DLL. The *real* Test A result:
+
+```text
+DLL x64 caricata: ...\x64\Release\zoteroWinWordIntegration.dll
+[TEST A - no fields] PASS
+  text_matches_word: True
+  story_coordinates_match_word: True
+  field_ranges_match_word: True
+  document_content_unchanged: True
+  offsets_reliable: True
+  length_utf16: 50
+  word_span_length: 50
+```
+
+The harness then stopped in Test B before calling the new native API for
+that scenario:
+
+```text
+AttributeError: Item.Range
+at word_state(): fields.Item(i).Range.Start
+```
+
+**Root cause: test harness bug, not native C++ failure.** Microsoft Word
+`Field` objects expose `Code` and `Result` ranges, but not
+`Field.Range` via this Word COM pywin32 interface. In the corrected,
+conversation-delivered `test_zotero_word_native_readonly_v2.py`,
+the expected field interval is calculated with the same contract as the
+compiled native patch:
+
+```python
+field = fields.Item(i)
+field_start = int(field.Code.Start) - 1
+field_end = int(field.Result.End) + 1
+```
+
+A syntactic check with `python -m py_compile` and an isolated mock
+of the Word COM objects passed. Actual Word Test B is still **pending**.
+The V2 script is a conversation attachment; it is **not** part of
+the published Zotero integration.
+
+Before running the V2 script, close every `WINWORD.EXE` process after
+saving work. Run:
+```cmd
+py -3 "%USERPROFILE%\Downloads\test_zotero_word_native_readonly_v2.py"
+```
+
+Record whether one-field `text_matches_word`,
+`story_coordinates_match_word`, `field_ranges_match_word`,
+and `document_content_unchanged` pass; separately record whether
+`offsets_reliable` remains true in the presence of a Word field.
+The test must not modify the production Zotero integration.
+
 ## Stage F — experimental read-only native snapshot patch (current increment)
 
 The three patches (two new APIs and the C2228 correction) implement **only read access** to Word's main-story text, and

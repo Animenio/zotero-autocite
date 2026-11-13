@@ -671,6 +671,43 @@ syntax was checked, but real Windows test remains pending.
 plugin installation. Do not treat a successful V3 Python COM mapping
 as direct evidence that the new native API has passed.
 
+## November 13, 2026 — patch 0005 installer-script fix (pending Windows retry)
+
+The tester tried the first `apply-autocite-segment-patch.ps1` script
+against the already-modified source clone. The script aborted at its first
+command:
+
+```text
+git.exe : error: patch failed: components/zoteroWinWordIntegration.mjs:114
+at apply-autocite-segment-patch.ps1 line 31
+git apply --reverse --check --ignore-whitespace ...
+```
+
+**Diagnosis:** the first script tried `git apply --reverse --check`
+on patch 0005 **before** verifying it was applied. If the patch is
+not applied, the reverse check is expected to fail. With PowerShell
+`$ErrorActionPreference='Stop'`, Git's stderr was surfaced as a
+terminating `NativeCommandError` before the forward apply check.
+The error does **not** establish that the forward patch is incompatible,
+and the script did not reach the source-mutating operation.
+
+A corrected conversation attachment
+`apply-autocite-segment-patch-v2.ps1` was created. It checks the marker
+in all three expected source files, refuses partially present edits,
+captures Git nonzero exit codes/stderr safely, runs forward
+`git apply --check` before touching source files, and validates that the
+patch is present after application. The Windows result is **pending**.
+
+Retry using the corrected script from the Downloads directory:
+
+```cmd
+powershell -NoProfile -ExecutionPolicy Bypass -File "%USERPROFILE%\Downloads\apply-autocite-segment-patch-v2.ps1"
+```
+
+**Do not run the V4 Python live test until the 0005 patch is successfully
+applied, the Release x64 DLL has been rebuilt, and the new export is
+verified with `dumpbin`.**
+
 ## Stage F — experimental read-only native snapshot patch (current increment)
 
 The three patches (two new APIs and the C2228 correction) implement **only read access** to Word's main-story text, and

@@ -595,6 +595,82 @@ tracked changes, content controls, nested fields) need separate tests.
 **The V3 script has passed Python syntax and isolated mock checks only,
 not a Windows Word runtime test.**
 
+## November 13, 2026 — live TEST C/D PASS; native verified segment patch 0005 prepared
+
+The user ran `test_zotero_word_native_readonly_v3.py` successfully on a
+disposable Microsoft Word document using the compiled x64 DLL. The full
+real-world report shows **all four tests PASS** and no document content
+changes.
+
+Test C (field between two markers):
+```text
+text_matches_word: True
+story_coordinates_match_word: True
+field_ranges_match_word: True
+document_content_unchanged: True
+offsets_reliable: False
+length_utf16: 79
+word_span_length: 113
+```
+
+Test D (Word COM field-free segment mapping):
+```json
+{
+  "field_count": 1,
+  "segments": [
+    {"start":0, "end":27, "word_span_length":27, "text_length_utf16":27, "offsets_reliable":true},
+    {"start":82, "end":113, "word_span_length":31, "text_length_utf16":31, "offsets_reliable":true}
+  ],
+  "marker_positions": {
+    "{AUTOCITE:BEFORE}": [[9,26]],
+    "{AUTOCITE:AFTER}": [[90,106]]
+  },
+  "all_segments_reliable": true,
+  "all_markers_unique": true,
+  "pass": true,
+  "document_content_unchanged": true
+}
+```
+
+**Conclusion:** simple segments outside Word fields can be mapped reliably
+when each span is individually read and validated. The global Word
+snapshot remains unsafe (`offsets_reliable=false`) and this behavior
+must not be disabled.
+
+Prepared GitHub native patch:
+`upstream-prep/patches/zotero-word-for-windows-integration/0005-verified-main-story-field-free-segment.patch`
+
+It adds a read-only `getVerifiedMainStorySegment(doc,start,end,&text)`
+C++ API and JS/ctypes wrapper:
+- checks main-story bounds and a 16-million UTF-16-unit maximum;
+- enumerates existing fields and **rejects overlap**;
+- rejects internally invalid field geometry;
+- duplicates a `CRange` and checks that Word preserves the requested
+  absolute start/end;
+- compares returned text UTF-16 length against the coordinate span;
+- rejects embedded NUL and releases allocated text via `freeData()`.
+
+The patch was validated against official sources with the existing three
+native patches applied **in memory**, and added to the ordered clean-clone
+patch script and CI applicability checks. It has **not yet compiled or run
+on the user's Windows PC**.
+
+For the *already modified* Windows source clone, apply patch 0005 only,
+then recompile **Release | x64** and verify its new exported name:
+```cmd
+dumpbin /exports "%USERPROFILE%\Downloads\zotero-word-for-windows-integration\build\zoteroWinWordIntegration\x64\Release\zoteroWinWordIntegration.dll" | findstr /I "getVerifiedMainStorySegment"
+```
+
+The conversation-delivered `test_zotero_word_native_readonly_v4.py`
+adds **TEST E**: verifies the new native API directly against Word COM
+field-free ranges and explicitly checks that reading a protected field
+is rejected. It still creates only a disposable test document. Its Python
+syntax was checked, but real Windows test remains pending.
+
+**Scope:** no citation mutation, Zotero field insertion, or production
+plugin installation. Do not treat a successful V3 Python COM mapping
+as direct evidence that the new native API has passed.
+
 ## Stage F — experimental read-only native snapshot patch (current increment)
 
 The three patches (two new APIs and the C2228 correction) implement **only read access** to Word's main-story text, and

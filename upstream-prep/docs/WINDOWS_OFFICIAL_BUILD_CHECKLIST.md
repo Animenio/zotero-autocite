@@ -742,6 +742,33 @@ five reports. **The new API's live Word Test E remains unverified.**
 Do not install or swap the generated DLL into the production Zotero
 application.
 
+## November 13, 2026 — Release x64 rebuild after 0005 blocked by MSB8041
+
+After successfully applying patch 0005, the user attempted to rebuild
+`Release|x64` in Visual Studio 2022, but MSBuild stopped at
+`Microsoft.CppBuild.targets(504,5): error MSB8041` (MFC libs missing).
+This occurred before C++ compilation. The previously observed MSVC/MFC
+version mismatch (14.42 selected, 14.44 ARM64 MFC installed) may also
+affect x64 after installing/changing Visual Studio components.
+
+Earlier on this PC `where /R ... mfcs140.lib` **confirmed**
+`14.44.35207\atlmfc\lib\x64\mfcs140.lib` is present. The next
+non-invasive test is to force that installed version for x64 **on the
+command line**, exactly as successfully done for ARM64:
+
+```cmd
+msbuild "%USERPROFILE%\Downloads\zotero-word-for-windows-integration\build\zoteroWinWordIntegration\zoteroWinWordIntegration.vcxproj" /p:Configuration=Release /p:Platform=x64 /p:VCToolsVersion=14.44.35207 -getProperty:MFC_KeyFile,VCToolsVersion,VCToolsInstallDir
+msbuild "%USERPROFILE%\Downloads\zotero-word-for-windows-integration\build\zoteroWinWordIntegration\zoteroWinWordIntegration.vcxproj" /t:Rebuild /p:Configuration=Release /p:Platform=x64 /p:VCToolsVersion=14.44.35207 /v:normal /nologo
+```
+
+If the build succeeds, inspect the **new** PE export
+`getVerifiedMainStorySegment` with `dumpbin`; only then run the V4
+Windows Word live harness. This command-line override does **not**
+persist in the Visual Studio project configuration and does not install
+the DLL in Zotero.
+
+Status: x64 rebuild with new patch 0005 **pending**, not passed.
+
 ## Stage F — experimental read-only native snapshot patch (current increment)
 
 The three patches (two new APIs and the C2228 correction) implement **only read access** to Word's main-story text, and

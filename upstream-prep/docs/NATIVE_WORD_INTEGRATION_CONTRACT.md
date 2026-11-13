@@ -1,6 +1,6 @@
 # Native Word ↔ Zotero Session integration: implementation contract
 
-**Status:** experimental design backed by pure-JavaScript tests, **not** yet a compiled Windows Word plugin.
+**Status (2026-11-13):** experimental read-only C++ Word APIs compiled and PE-export-verified on Win32, x64 and ARM64; real Word no-field and one-field read tests PASS. **Not a deployable plugin or safe mutating converter:** Word-field documents have an unsafe global text-offset mapping.
 **Date:** 2026-11-11
 **Licensing:** new proposal modules AGPL-3.0-or-later; original Word VBA macro in the upstream repo has GPLv3-or-later license.
 
@@ -124,3 +124,38 @@ those fields in the Word DLL.
 ## Current blocker
 
 The feature is not present in Zotero's C++ library, JS/ctypes wrapper or Word template. The native interfaces above and their strict COM behavior still require implementation and Windows compilation. The testable modules in this branch are an engineering scaffold, not a deployable Zotero plugin.
+
+## Live Word field-offset finding (2026-11-13)
+
+Using a compiled x64 DLL and a disposable Microsoft Word document, the
+native `getMainStorySnapshot` and `getMainStoryFieldRanges` functions
+matched Word COM on text, story boundaries, and protected field intervals.
+The document remained content-unchanged after both native reads.
+
+However, in a one-field test, `Range.Text` had **70 UTF-16 units** and
+the absolute Word story coordinates spanned **103 positions**. Native and
+Word COM agreed on the existing field interval `[49,102)`, explaining
+why global text length cannot simply be used to calculate absolute Word
+edit locations. The correct current action is **fail closed** when
+`offsetsReliable === false`.
+
+### Candidate field-aware coordinate mapping, pending Windows verification
+
+1. Read field spans in the Word coordinate system from native C++.
+2. Split the main story into distinct field-free ranges bounded by
+   `storyStart`, the protected field intervals, and `storyEnd`.
+3. For every field-free range, fetch `Range.Text` independently from Word
+   COM and check the UTF-16 length exactly equals `range.End-range.Start`.
+   Refuse to map or edit segments which fail that check.
+4. Locate the marker in the verified segment text and calculate its absolute
+   Word coordinates from that segment start, not from the whole-document text.
+5. Before any edit, re-read Word `Range(start,end).Text` and verify the
+   exact marker and nonoverlap with protected field spans. Recheck document
+   state and race conditions before writing.
+
+This remains an **experiment**, not an already implemented native adapter.
+Passing on simple field-free spans will not establish safety for all Word
+features or documents. Track changes, table cells, nested fields, hidden text,
+surrogates and concurrent document mutations require additional guards and
+live tests. The existing `wordStoryPreflight.mjs` must not be relaxed until
+a verified segment-aware native interface exists.

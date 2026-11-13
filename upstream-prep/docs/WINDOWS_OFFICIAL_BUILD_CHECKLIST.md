@@ -550,6 +550,51 @@ and `document_content_unchanged` pass; separately record whether
 `offsets_reliable` remains true in the presence of a Word field.
 The test must not modify the production Zotero integration.
 
+## November 13, 2026 — real Word runtime TEST A + TEST B PASS; global text offsets UNSAFE
+
+The Windows user ran the improved `test_zotero_word_native_readonly_v2.py`
+against the exact built x64 Zotero Word DLL, in an isolated Word instance
+with all pre-existing `WINWORD.EXE` processes closed. Full verified output:
+
+| Check | TEST A (no fields) | TEST B (one Word field) |
+| --- | --- | --- |
+| text_matches_word | True | True |
+| story_coordinates_match_word | True | True |
+| field_ranges_match_word | True | True |
+| document_content_unchanged | True | True |
+| offsets_reliable | True | **False** |
+| length_utf16 | 50 | **70** |
+| word_span_length | 50 | **103** |
+
+In TEST B, `word_ranges = [[49, 102]]` and
+`native_ranges = [[49, 102]]`: both the native field span and Word COM
+agree exactly. There was no observed document content modification.
+The test harness reports **PASS**, as designed, because it checks read
+correctness and no content mutation, not whether global text offsets are
+safe for edits.
+
+**Critical boundary:** with an existing Word field, the full story's
+`Range.Text` UTF-16 length was 70, but `Range.End-Range.Start` was 103.
+The 33-position discrepancy proves that a global raw-text index must NOT
+be added to `storyStart` to determine an edit location. The existing
+`offsetsReliable=false` hard stop in `wordStoryPreflight.mjs` is
+correct for the current representation; do not weaken or remove it.
+
+**Next proof-of-concept (not yet run on Windows):** a new standalone V3
+Python harness checks whether the gaps *outside* verified field intervals
+have exact UTF-16 text lengths, and validates two marker locations before
+and after an existing field against actual `Word.Range(start,end).Text`.
+It also tests UTF-16 indexing with a non-BMP emoji. The V3 harness
+refuses to treat any segment with a length mismatch as safe.
+
+The field-free-segment strategy is tentative: even if V3 passes, the
+native C++/js-ctypes bridge still needs an API returning independently
+validated segment text and absolute Word coordinates; no safe
+mutating conversion is authorized. Complex Word constructs (tables,
+tracked changes, content controls, nested fields) need separate tests.
+**The V3 script has passed Python syntax and isolated mock checks only,
+not a Windows Word runtime test.**
+
 ## Stage F — experimental read-only native snapshot patch (current increment)
 
 The three patches (two new APIs and the C2228 correction) implement **only read access** to Word's main-story text, and

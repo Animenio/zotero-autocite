@@ -708,6 +708,40 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "%USERPROFILE%\Downloads\app
 applied, the Release x64 DLL has been rebuilt, and the new export is
 verified with `dumpbin`.**
 
+## November 13, 2026 — patch 0005 applied successfully in source clone
+
+User ran the corrected Windows PowerShell `apply-autocite-segment-patch-v2.ps1` against the existing Zotero Word source clone. Actual output:
+
+```text
+[OK] Controllo preliminare git apply --check superato.
+[OK] Patch 0005 applicata ai sorgenti C++ e JavaScript del clone.
+[OK] Verifica post-applicazione e git diff --check superate.
+ M build/zoteroWinWordIntegration/document.cpp
+ M build/zoteroWinWordIntegration/zoteroWinWordIntegration.h
+ M build/zoteroWinWordIntegration/zoteroWinWordIntegration.vcxproj
+ M components/zoteroWinWordIntegration.mjs
+ M install/libzoteroWinWordIntegration.dll
+ M install/libzoteroWinWordIntegration_ARM64.dll
+ M install/libzoteroWinWordIntegration_x64.dll
+?? autocite_zotero/
+```
+
+The four modified source/project files are expected from staged patches
+0001–0005; `install/*.dll` binaries in this **source checkout** had been
+changed by prior successful local build copy steps. The unrelated/untracked
+`autocite_zotero/` directory should be preserved, not removed or committed
+automatically.
+
+**Next:** use Visual Studio 2022 with `Release | x64` and rebuild the
+patched native project, verify `getVerifiedMainStorySegment` in the
+generated PE export table, then run `test_zotero_word_native_readonly_v4.py`
+with every `WINWORD.EXE` process closed. The script was inspected: its
+`main()` does invoke `probe_native_segment_api()` after Test D and expects
+five reports. **The new API's live Word Test E remains unverified.**
+
+Do not install or swap the generated DLL into the production Zotero
+application.
+
 ## Stage F — experimental read-only native snapshot patch (current increment)
 
 The three patches (two new APIs and the C2228 correction) implement **only read access** to Word's main-story text, and

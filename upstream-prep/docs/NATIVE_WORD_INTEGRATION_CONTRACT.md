@@ -1,6 +1,6 @@
 # Native Word ↔ Zotero Session integration: implementation contract
 
-**Status (2026-11-13):** experimental read-only C++ Word APIs compiled and PE-export-verified on Win32, x64 and ARM64; real Word no-field and one-field read tests PASS. **Not a deployable plugin or safe mutating converter:** Word-field documents have an unsafe global text-offset mapping.
+**Status (2026-11-13):** experimental read-only C++ Word APIs compiled and PE-export-verified on Win32, x64 and ARM64; real Word read-only tests A–D PASS (including verified field-free segment mapping). New API patch 0005 is prepared but not compiled or run yet. **Not a deployable plugin or safe mutating converter:** Word-field documents still have an unsafe global text-offset mapping.
 **Date:** 2026-11-11
 **Licensing:** new proposal modules AGPL-3.0-or-later; original Word VBA macro in the upstream repo has GPLv3-or-later license.
 
@@ -159,3 +159,26 @@ features or documents. Track changes, table cells, nested fields, hidden text,
 surrogates and concurrent document mutations require additional guards and
 live tests. The existing `wordStoryPreflight.mjs` must not be relaxed until
 a verified segment-aware native interface exists.
+
+## Candidate native field-free segment export (patch 0005; not yet Windows-validated)
+
+The validated V3 Word COM test located `{AUTOCITE:BEFORE}` at Word
+`[9,26)` and `{AUTOCITE:AFTER}` at `[90,106)`, separated by the
+existing Word field `[27,82)`. Independent field-free spans `[0,27)`
+and `[82,113)` had text lengths equal to their Word coordinate lengths.
+
+Native patch 0005 exposes `getVerifiedMainStorySegment(document_t*, long
+start, long end, wchar_t**)` and a matching js-ctypes method, returning
+only when no protected field is intersected and the returned UTF-16 text
+length precisely matches its Word coordinate length.
+
+- Fail closed for out-of-bounds, overlapping fields, unreliable segment
+  geometry, embedded NUL and oversized text.
+- Free the returned `wchar_t*` through `freeData()`.
+- The API neither writes content nor makes the full-story snapshot safe.
+- Further work must add a **segment-aware discovery and preflight** which
+  revalidates unchanged Word content and protected spans immediately
+  before any mutation. Do not bypass the current global-offset guard by
+  merely setting `offsetsReliable=true`.
+- Runtime test V4 includes a mandatory negative test: native reads that
+  overlap existing fields **must** return an error.
